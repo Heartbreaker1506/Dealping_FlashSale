@@ -174,6 +174,56 @@ async function getTrackingItemHistory(id) {
   return history;
 }
 
+async function getTrackingItemChartHistory(id) {
+  const item = await prisma.trackingItem.findUnique({ where: { id } });
+  if (!item) {
+    throw new ApiError(404, "Không tìm thấy item");
+  }
+
+  if (item.platform === "SHOPEE" && item.itemId) {
+    return await shopeePriceService.fetchPriceHistory(item.itemId.toString());
+  }
+
+  return { labels: [], price: [] };
+}
+
+async function listBatchTrackingItems(userId) {
+  if (!userId) throw new ApiError(400, "Thiếu userId");
+  
+  const items = await prisma.trackingItem.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+  
+  if (items.length === 0) return [];
+  
+  // Lọc ra các item thuộc Shopee và có itemId
+  const shopeeItemIds = items
+    .filter(item => item.platform === "SHOPEE" && item.itemId)
+    .map(item => item.itemId.toString());
+    
+  let batchPrices = {};
+  if (shopeeItemIds.length > 0) {
+    batchPrices = await shopeePriceService.fetchBatchPrices(shopeeItemIds);
+  }
+  
+  return items.map(item => {
+    const serialized = serializeItem(item);
+    
+    // Gắn thêm dữ liệu giá mới nhất nếu có
+    if (item.platform === "SHOPEE" && item.itemId) {
+      const liveData = batchPrices[item.itemId.toString()];
+      if (liveData) {
+        serialized.livePrice = liveData.price;
+        serialized.liveProductName = liveData.productName;
+        serialized.liveImageUrl = liveData.imageUrl;
+      }
+    }
+    
+    return serialized;
+  });
+}
+
 async function previewTrackingItem(urlParams) {
   // urlParams có thể là shopeeUrl do FE gửi lên
   const finalUrl = urlParams;
@@ -246,4 +296,6 @@ module.exports = {
   deleteTrackingItem,
   getTrackingItemHistory,
   previewTrackingItem,
+  getTrackingItemChartHistory,
+  listBatchTrackingItems,
 };

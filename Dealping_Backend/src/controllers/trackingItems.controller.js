@@ -34,6 +34,12 @@ const getHistory = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: history });
 });
 
+const getChartHistory = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const history = await trackingItemsService.getTrackingItemChartHistory(id);
+  res.status(200).json({ success: true, data: history });
+});
+
 const preview = asyncHandler(async (req, res) => {
   const { url, shopeeUrl } = req.body;
   const targetUrl = url || shopeeUrl;
@@ -41,4 +47,10 @@ const preview = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
-module.exports = { create, list, remove, getHistory, preview };
+const getBatch = asyncHandler(async (req, res) => {
+  const { userId } = req.query;
+  const items = await trackingItemsService.listBatchTrackingItems(userId);
+  res.status(200).json({ success: true, data: items });
+});
+
+module.exports = { create, list, remove, getHistory, getChartHistory, preview, getBatch };
