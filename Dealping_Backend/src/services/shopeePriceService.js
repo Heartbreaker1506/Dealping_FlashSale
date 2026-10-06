@@ -216,18 +216,17 @@ async function fetchPriceHistory(itemId) {
     });
     
     if (response.data) {
-       // Thường API format=chart trả về { labels: [...], price: [...] } hoặc tương tự
-       // Nếu nó trả mảng thì xử lý khác, ở đây ta assume trả object có labels và price
        const data = response.data.data || response.data;
        const labels = data.labels || [];
        const price = data.price || [];
        
-       return { labels, price };
+       if (labels.length > 0 && price.length > 0) {
+         return { labels, price };
+       }
     }
   } catch (err) {
     console.error(`[Shopee History API Error] Lỗi khi lấy lịch sử giá cho ${itemId}:`, err.message);
   }
-  
   return { labels: [], price: [] };
 }
 

@@ -30,9 +30,15 @@ async function createTrackingItem({
     throw new ApiError(400, "Thiếu userId, productUrl hoặc targetPrice");
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  let user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
-    throw new ApiError(404, "Không tìm thấy user");
+    // Tự động tạo user tạm thời nếu chưa có để phục vụ việc test/guest
+    user = await prisma.user.create({
+      data: {
+        id: userId,
+        email: `guest_${userId.substring(0, 8)}@dealping.com`,
+      }
+    });
   }
 
   const currentCount = await prisma.trackingItem.count({ where: { userId } });

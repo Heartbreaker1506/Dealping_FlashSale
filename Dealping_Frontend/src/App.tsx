@@ -154,7 +154,7 @@ export interface PriceDropData {
 
 const API_URL = import.meta.env.VITE_API_URL || ((typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
   ? "http://localhost:3000"
-  : "https://api-dealping.onrender.com")
+  : "https://api-dealping-be-flashsale.onrender.com")
 
 function getUserId() {
   return "5c77817b-de1d-4b97-afd4-911d4001acb7"
@@ -391,7 +391,7 @@ async function fetchPreview(shopeeUrl: string) {
 
 interface BubbleData {
   id: number
-  icon: string
+  icon: any
   left: number
   size: number
   duration: number
@@ -433,20 +433,59 @@ function SpotlightOverlay({
   onDone: () => void
 }) {
   const [rect, setRect] = useState<Rect | null>(null)
+  const [bubbleRect, setBubbleRect] = useState<Rect | null>(null)
+  const [radarRect, setRadarRect] = useState<Rect | null>(null)
 
   useLayoutEffect(() => {
-    if (step !== "slot1" || !targetRef.current || !containerRef.current) return
+    if (!containerRef.current) return
 
-    const slotBox = targetRef.current.getBoundingClientRect()
-    const containerBox = containerRef.current.getBoundingClientRect()
+    if (step === "slot1" && targetRef.current) {
+      const slotBox = targetRef.current.getBoundingClientRect()
+      const containerBox = containerRef.current.getBoundingClientRect()
 
-    setRect({
-      top: slotBox.top - containerBox.top,
-      left: slotBox.left - containerBox.left,
-      width: slotBox.width,
-      height: slotBox.height,
-    })
+      setRect({
+        top: slotBox.top - containerBox.top,
+        left: slotBox.left - containerBox.left,
+        width: slotBox.width,
+        height: slotBox.height,
+      })
+    } else if (step === "radar") {
+      const radarEl = document.getElementById("radar-header-area")
+      const cBox = containerRef.current.getBoundingClientRect()
+      
+      if (radarEl) {
+        const rBox = radarEl.getBoundingClientRect()
+        setRadarRect({
+          top: rBox.top - cBox.top,
+          left: rBox.left - cBox.left,
+          width: rBox.width,
+          height: rBox.height,
+        })
+
+        const bubbles = Array.from(document.querySelectorAll(".bubble-item:not(.bubble-popped)")) as HTMLElement[]
+        let foundVisible = false
+        for (const b of bubbles) {
+          const bBox = b.getBoundingClientRect()
+          const bCenterY = bBox.top + bBox.height / 2
+          if (bCenterY > rBox.top + 20 && bCenterY < rBox.bottom - 20) {
+            const style = window.getComputedStyle(b)
+            if (parseFloat(style.opacity) > 0.1) {
+              setBubbleRect({
+                top: bBox.top - cBox.top,
+                left: bBox.left - cBox.left,
+                width: bBox.width,
+                height: bBox.height,
+              })
+              foundVisible = true
+              break
+            }
+          }
+        }
+        if (!foundVisible) setBubbleRect(null)
+      }
+    }
   }, [step, targetRef, containerRef])
+
 
   if (step === "none") return null
 
@@ -463,27 +502,20 @@ function SpotlightOverlay({
     const tooltipTop = holeBottom + 16
 
     return (
-      <div className="absolute inset-0 z-40 pointer-events-none">
-        {/* Four dark panels around the hole */}
-        <div
-          className="absolute inset-0 pointer-events-auto"
-          style={{
-            clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${holeTop}px, ${holeLeft}px ${holeTop}px, ${holeLeft}px ${holeBottom}px, ${holeLeft + holeW}px ${holeBottom}px, ${holeLeft + holeW}px ${holeTop}px, 0 ${holeTop}px)`,
-            background: "rgba(0,0,0,0.78)",
-          }}
-        />
+      <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
+        {/* Invisible blocker to prevent interacting with background during tutorial */}
+        <div className="absolute inset-0 pointer-events-auto" />
 
-        {/* Glowing border around the spotlight */}
+        {/* Cutout using box-shadow to make it fully rounded */}
         <div
-          className="pointer-events-none absolute rounded-[24px]"
+          className="absolute pointer-events-none rounded-[24px]"
           style={{
             top: holeTop,
             left: holeLeft,
             width: holeW,
             height: holeH,
             boxShadow:
-              "0 0 0 2px rgba(139,92,246,0.8), 0 0 24px 6px rgba(139,92,246,0.35)",
-            borderRadius: 24,
+              "0 0 0 9999px rgba(0,0,0,0.78), 0 0 0 2px rgba(139,92,246,0.8), 0 0 24px 6px rgba(139,92,246,0.35)",
           }}
         />
 
@@ -525,44 +557,49 @@ function SpotlightOverlay({
   }
 
   // ── STEP 2: glowing dot in radar area, tooltip below ─────────────────────
-  // Radar header = top 0..176px, center ~88px from top of screen
-  const dotTop = 150
-  const dotLeft = "50%"
+  
+  // If we found a real bubble, use its center. Otherwise fallback to radar center.
+  const fallbackTop = radarRect ? radarRect.top + radarRect.height / 2 : 150
+  const fallbackLeft = radarRect ? radarRect.left + radarRect.width / 2 : 120
+
+  const bTop = bubbleRect ? bubbleRect.top + bubbleRect.height / 2 : fallbackTop
+  const bLeft = bubbleRect ? bubbleRect.left + bubbleRect.width / 2 : fallbackLeft
+  
+  // Cutout hole sizing
+  const bW = bubbleRect ? bubbleRect.width + 16 : 56
+  const bH = bubbleRect ? bubbleRect.height + 16 : 56
 
   return (
-    <div className="absolute inset-0 z-40 pointer-events-none">
-      {/* Full dark overlay */}
-      <div
-        className="absolute inset-0 pointer-events-auto"
-        style={{ background: "rgba(0,0,0,0.78)" }}
-      />
+    <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
+      {/* Invisible blocker to prevent interacting with background during tutorial */}
+      <div className="absolute inset-0 pointer-events-auto" />
 
-      {/* Glowing pulsing dot */}
+      {/* Cutout hole capturing the bubble */}
       <div
-        className="absolute pointer-events-none"
-        style={{ top: dotTop - 22, left: "50%", transform: "translateX(-50%)" }}
+        className="absolute pointer-events-none rounded-full flex items-center justify-center"
+        style={{
+          top: bTop - bH / 2,
+          left: bLeft - bW / 2,
+          width: bW,
+          height: bH,
+          boxShadow:
+            "0 0 0 9999px rgba(0,0,0,0.78), 0 0 10px 2px rgba(236,72,153,0.55), 0 0 20px 4px rgba(139,92,246,0.3)",
+        }}
       >
-        {/* Core dot */}
-        <div
-          className="rounded-full flex items-center justify-center"
-          style={{
-            width: 44,
-            height: 44,
-            background: "linear-gradient(135deg,#EC4899,#7C3AED)",
-            boxShadow:
-              "0 0 20px 6px rgba(236,72,153,0.55), 0 0 40px 12px rgba(139,92,246,0.3)",
-          }}
-        >
-          <span />
-        </div>
+        {/* Render a fake bubble ONLY IF no real bubble was visible */}
+        {!bubbleRect && (
+          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/50 flex items-center justify-center animate-bounce">
+            <span className="text-xl">🎁</span>
+          </div>
+        )}
       </div>
 
       {/* Arrow line from dot down to tooltip */}
       <div
         className="absolute pointer-events-none"
         style={{
-          top: dotTop + 28,
-          left: "50%",
+          top: bTop + bH / 2 + 4,
+          left: bLeft,
           transform: "translateX(-50%)",
           width: 2,
           height: 32,
@@ -574,15 +611,15 @@ function SpotlightOverlay({
       {/* Tooltip below */}
       <div
         className="absolute pointer-events-auto"
-        style={{ top: dotTop + 64, left: 16, right: 16 }}
+        style={{ top: bTop + bH / 2 + 40, left: 16, right: 16 }}
       >
         <div className="bg-white rounded-[20px] p-4 shadow-2xl relative">
-          {/* Arrow pointing UP to dot */}
+          {/* Arrow pointing UP */}
           <div
             className="absolute w-0 h-0"
             style={{
               top: -10,
-              left: "50%",
+              left: bLeft - 16,
               transform: "translateX(-50%)",
               borderLeft: "10px solid transparent",
               borderRight: "10px solid transparent",
@@ -601,6 +638,7 @@ function SpotlightOverlay({
           </button>
         </div>
       </div>
+
     </div>
   )
 }
@@ -1177,7 +1215,7 @@ function SlotCard({
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
                     itemStyle={{ color: '#fff' }}
-                    formatter={(val: number) => formatVND(val)}
+                    formatter={(val: any) => formatVND(val)}
                   />
                   <Line type="monotone" dataKey="price" stroke={isAtBottom ? "#34d399" : "#f472b6"} strokeWidth={2} dot={{r: 2, fill: isAtBottom ? "#34d399" : "#f472b6"}} />
                 </LineChart>
@@ -1201,6 +1239,87 @@ export default function App() {
   const [chartLinkInput, setChartLinkInput] = useState("")
   const [isAnalyzingChart, setIsAnalyzingChart] = useState(false)
   const [analyzedCharts, setAnalyzedCharts] = useState<any[]>([])
+
+  // Wishlist View State
+  const [wishlistItems, setWishlistItems] = useState<any[]>([])
+  const [wishlistLoading, setWishlistLoading] = useState(false)
+
+  useEffect(() => {
+    if (view === "wishlist") {
+      setWishlistLoading(true)
+      const cleanApiUrl = API_URL.replace(/\/$/, "")
+      fetch(`${cleanApiUrl}/api/tracking-items?userId=${getUserId()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && (data.status === 'success' || data.success === true)) {
+            setWishlistItems(data.data || [])
+          } else if (Array.isArray(data)) {
+            setWishlistItems(data)
+          } else if (data && data.data && Array.isArray(data.data)) {
+            setWishlistItems(data.data)
+          }
+        })
+        .catch(err => console.error("Lỗi tải wishlist:", err))
+        .finally(() => setWishlistLoading(false))
+    }
+  }, [view])
+
+  const handleAnalyzeChart = async (urlToAnalyze: string) => {
+    if (!urlToAnalyze) return;
+    setIsAnalyzingChart(true);
+    setChartLinkInput(urlToAnalyze);
+    try {
+      const cleanApiUrl = API_URL.replace(/\/$/, "");
+      
+      const previewRes = await fetch(`${cleanApiUrl}/api/tracking-items/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: urlToAnalyze })
+      });
+      
+      const previewData = await previewRes.json();
+      const itemId = previewData?.data?.itemId;
+      const productName = previewData?.data?.productName || "Sản phẩm từ Link";
+      
+      if (!itemId) {
+        showToast("Lỗi", "Không tìm thấy ID sản phẩm để xem biểu đồ", "❌");
+        setIsAnalyzingChart(false);
+        return;
+      }
+
+      const historyRes = await fetch(`${cleanApiUrl}/api/deals/history/${itemId}`);
+      const historyJson = await historyRes.json();
+      
+      if (historyJson?.data?.labels?.length > 0) {
+        const history = historyJson.data;
+        const dataPoints = history.labels.map((lbl: string, i: number) => ({
+          date: lbl,
+          price: history.price[i]
+        }));
+        
+        const minPrice = Math.min(...history.price);
+        const currentPrice = history.price[history.price.length - 1];
+        
+        setAnalyzedCharts(prev => [
+          {
+            id: Date.now(),
+            name: productName,
+            url: urlToAnalyze,
+            isBottom: currentPrice <= minPrice,
+            data: dataPoints
+          },
+          ...prev
+        ]);
+        setChartLinkInput("");
+      } else {
+        showToast("Thông báo", "Chưa có dữ liệu lịch sử giá cho sản phẩm này", "ℹ️");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Lỗi", "Đã có lỗi xảy ra khi lấy lịch sử giá", "❌");
+    }
+    setIsAnalyzingChart(false);
+  };
 
   // Refs for spotlight measurement
   const slot1InputRef = useRef<HTMLInputElement>(null)
@@ -1747,13 +1866,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0b0c12] flex items-center justify-center p-0 sm:p-4 select-none font-sans">
       <div className="w-full sm:w-98.25 h-screen sm:h-213 sm:rounded-[52px] p-0 sm:p-3 bg-gradient-to-b from-neutral-700 via-neutral-800 to-neutral-900 sm:shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_50px_rgba(124,58,237,0.3)] sm:border-4 sm:border-neutral-700 relative flex flex-col overflow-hidden">
-        {/* Dynamic Island */}
-        <div className="hidden sm:flex absolute top-5 left-1/2 -translate-x-1/2 h-7 px-3.5 bg-black rounded-full z-40 items-center space-x-2">
-          <span className="text-[10px] font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-amber-300">
-            PING DEAL
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-        </div>
 
         {/* Phone Screen */}
         <div
@@ -1870,7 +1982,7 @@ export default function App() {
             </button>
 
             {/* Center & Right: Only in Main View */}
-            {view === "main" && (
+            {(view as any) === "main" && (
               <>
                 <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-white/30 backdrop-blur text-[10px] font-black text-purple-600 dark:text-purple-400 border border-white/40 flex items-center space-x-1 shadow-sm">
                   <span>Giới hạn:</span>
@@ -1991,7 +2103,7 @@ export default function App() {
           )}
 
           {/* ===== MAIN APP ===== */}
-          {view === "main" && (
+          {(view as any) === "main" && (
             <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden z-10">
               {/* RADAR HEADER */}
               <div
@@ -2073,31 +2185,31 @@ export default function App() {
                     <div className="absolute top-10 right-0 mt-2 bg-neutral-900/95 backdrop-blur-xl border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
                       <button 
                         onClick={() => { setView("wishlist"); setIsMenuOpen(false); }}
-                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "wishlist" ? "bg-white/15 text-purple-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "wishlist" ? "bg-white/15 text-purple-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
                       >
-                        <Heart className={`w-4 h-4 ${view === "wishlist" ? "text-purple-400" : "text-white/60"}`} />
+                        <Heart className={`w-4 h-4 ${(view as any) === "wishlist" ? "text-purple-400" : "text-white/60"}`} />
                         <span className="text-xs">Lịch sử theo dõi</span>
                       </button>
                       <button 
                         onClick={() => { setView("price_chart"); setIsMenuOpen(false); }}
-                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "price_chart" ? "bg-white/15 text-emerald-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "price_chart" ? "bg-white/15 text-emerald-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
                       >
-                        <TrendingUp className={`w-4 h-4 ${view === "price_chart" ? "text-emerald-400" : "text-white/60"}`} />
+                        <TrendingUp className={`w-4 h-4 ${(view as any) === "price_chart" ? "text-emerald-400" : "text-white/60"}`} />
                         <span className="text-xs">Biểu đồ giá</span>
                       </button>
                       <button 
                         onClick={() => { setView("account"); setIsMenuOpen(false); }}
-                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "account" ? "bg-white/15 text-pink-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "account" ? "bg-white/15 text-pink-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
                       >
-                        <User className={`w-4 h-4 ${view === "account" ? "text-pink-400" : "text-white/60"}`} />
+                        <User className={`w-4 h-4 ${(view as any) === "account" ? "text-pink-400" : "text-white/60"}`} />
                         <span className="text-xs">Tài khoản</span>
                       </button>
                       <div className="h-px bg-white/10 my-1 mx-2" />
                       <button 
                         onClick={() => { setView("main"); setIsMenuOpen(false); }}
-                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "main" ? "bg-white/15 text-sky-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "main" ? "bg-white/15 text-sky-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
                       >
-                        <Radio className={`w-4 h-4 ${view === "main" ? "text-sky-400" : "text-white/60"}`} />
+                        <Radio className={`w-4 h-4 ${(view as any) === "main" ? "text-sky-400" : "text-white/60"}`} />
                         <span className="text-xs">Radar Săn Deal</span>
                       </button>
                     </div>
@@ -2841,8 +2953,8 @@ export default function App() {
           )}
 
           {/* WISHLIST VIEW */}
-          {view === "wishlist" && (
-            <div className="flex-1 flex flex-col relative overflow-hidden z-10 pt-4 px-5">
+          {(view as any) === "wishlist" && (
+            <div className="flex-1 flex flex-col relative overflow-hidden z-10 pt-24 px-5">
               <div className="flex items-start justify-between mb-1">
                 <h2 className="text-lg font-black">❤️ Wishlist Của Bạn</h2>
                 <button 
@@ -2854,29 +2966,64 @@ export default function App() {
                   </div>
                 </button>
               </div>
-              <p className="text-[10px] text-white/60 mb-4">Danh sách sản phẩm đang theo dõi (chuẩn bị dữ liệu Batch từ Quân)</p>
+              <p className="text-[10px] text-white/60 mb-4">Danh sách sản phẩm đang theo dõi 24/7</p>
               
               <div className="flex-1 overflow-y-auto space-y-3 pb-24 relative">
-                {/* Prepare UI for batch data */}
-                {[1, 2, 3].map((item) => (
-                  <div key={item} className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center space-x-3 animate-pulse">
-                    <div className="w-12 h-12 bg-white/10 rounded-xl"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-white/10 rounded w-3/4"></div>
-                      <div className="h-2 bg-white/10 rounded w-1/2"></div>
-                    </div>
+                {wishlistLoading ? (
+                  <>
+                    {[1, 2, 3].map((item) => (
+                      <div key={item} className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center space-x-3 animate-pulse">
+                        <div className="w-12 h-12 bg-white/10 rounded-xl"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-white/10 rounded w-3/4"></div>
+                          <div className="h-2 bg-white/10 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : wishlistItems.length === 0 ? (
+                  <div className="text-center text-[10px] text-white/40 mt-4">
+                    📭 Bạn chưa theo dõi sản phẩm nào.
                   </div>
-                ))}
-                <div className="text-center text-[10px] text-white/40 mt-4">
-                  ⏳ Đang chờ Batch Data từ server...
-                </div>
+                ) : (
+                  wishlistItems.map((item, idx) => {
+                    const itemUrl = item.productUrl || item.shopeeUrl || (item.shopId ? `https://shopee.vn/product-i.${item.shopId}.${item.itemId}` : "");
+                    return (
+                    <div 
+                      key={item.id || idx} 
+                      className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center space-x-3 transition-colors hover:bg-white/10 cursor-pointer"
+                      onClick={() => {
+                        if (itemUrl) {
+                          setView("price_chart");
+                          handleAnalyzeChart(itemUrl);
+                        } else {
+                          showToast("Lỗi", "Không có link sản phẩm để phân tích", "❌");
+                        }
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/20 flex items-center justify-center">
+                        {item.imageUrl || item.productImage ? (
+                          <img src={item.imageUrl || item.productImage} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
+                        ) : (
+                          <span className="text-lg">🛍️</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-white truncate">{item.productName || "Sản phẩm đang theo dõi"}</h4>
+                        <p className="text-[10px] text-emerald-400 font-semibold truncate mt-1">
+                          Mục tiêu: {formatVND(item.targetPrice)} {item.variantName ? `| ${item.variantName}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  )})
+                )}
               </div>
             </div>
           )}
 
           {/* PRICE CHART VIEW (Global) */}
-          {view === "price_chart" && (
-            <div className="flex-1 flex flex-col relative overflow-hidden z-10 pt-4 px-5">
+          {(view as any) === "price_chart" && (
+            <div className="flex-1 flex flex-col relative overflow-hidden z-10 pt-24 px-5">
               <div className="flex items-start justify-between mb-1">
                 <h2 className="text-lg font-black">📈 Theo Dõi Biểu Đồ Giá</h2>
                 <button 
@@ -2900,64 +3047,7 @@ export default function App() {
                   className="w-full h-12 bg-white/10 border border-white/20 rounded-[20px] pl-4 pr-24 text-xs text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 transition-colors"
                 />
                 <button 
-                  onClick={async () => {
-                    if (!chartLinkInput) return;
-                    setIsAnalyzingChart(true);
-                    try {
-                      const cleanApiUrl = API_URL.replace(/\/$/, "");
-                      
-                      // 1. Phân tích link để lấy itemId
-                      const previewRes = await fetch(`${cleanApiUrl}/api/tracking-items/preview`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ url: chartLinkInput })
-                      });
-                      
-                      const previewData = await previewRes.json();
-                      const itemId = previewData?.data?.itemId;
-                      const productName = previewData?.data?.productName || "Sản phẩm từ Link";
-                      
-                      if (!itemId) {
-                        showToast("Lỗi", "Không tìm thấy ID sản phẩm để xem biểu đồ", "❌");
-                        setIsAnalyzingChart(false);
-                        return;
-                      }
-
-                      // 2. Gọi API lịch sử giá
-                      const historyRes = await fetch(`${cleanApiUrl}/api/deals/history/${itemId}`);
-                      const historyJson = await historyRes.json();
-                      
-                      if (historyJson?.data?.labels?.length > 0) {
-                        const history = historyJson.data;
-                        const dataPoints = history.labels.map((lbl: string, i: number) => ({
-                          date: lbl,
-                          price: history.price[i]
-                        }));
-                        
-                        const minPrice = Math.min(...history.price);
-                        const currentPrice = history.price[history.price.length - 1];
-                        
-                        setAnalyzedCharts([
-                          {
-                            id: Date.now(),
-                            name: productName,
-                            url: chartLinkInput,
-                            isBottom: currentPrice <= minPrice,
-                            data: dataPoints
-                          },
-                          ...analyzedCharts
-                        ]);
-                        setChartLinkInput("");
-                      } else {
-                        showToast("Thông báo", "Chưa có dữ liệu lịch sử giá cho sản phẩm này", "ℹ️");
-                      }
-                    } catch (error) {
-                      console.error(error);
-                      showToast("Lỗi", "Không thể lấy biểu đồ", "❌");
-                    } finally {
-                      setIsAnalyzingChart(false);
-                    }
-                  }}
+                  onClick={() => handleAnalyzeChart(chartLinkInput)}
                   disabled={!chartLinkInput || isAnalyzingChart}
                   className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 disabled:text-white/50 text-white font-bold text-[10px] rounded-[16px] transition-colors flex items-center justify-center shadow-lg"
                 >
@@ -2992,7 +3082,7 @@ export default function App() {
                             <Tooltip 
                               contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
                               itemStyle={{ color: '#fff' }}
-                              formatter={(value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)}
+                              formatter={(value: any) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)}
                             />
                             <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} />
                           </LineChart>
@@ -3006,8 +3096,8 @@ export default function App() {
           )}
 
           {/* ACCOUNT VIEW */}
-          {view === "account" && (
-            <div className="flex-1 flex flex-col relative overflow-hidden z-10 pt-4 px-5">
+          {(view as any) === "account" && (
+            <div className="flex-1 flex flex-col relative overflow-hidden z-10 pt-24 px-5">
               <div className="flex items-start justify-between mb-1">
                 <h2 className="text-lg font-black">👤 Tài Khoản</h2>
                 <button 
@@ -3057,34 +3147,34 @@ export default function App() {
 
           {/* Global Menu Popup (For views other than main) */}
           {isMenuOpen && view !== "main" && (
-            <div className="absolute top-16 right-5 z-50 bg-neutral-900/95 backdrop-blur-xl border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
+            <div className="absolute top-[140px] right-5 z-50 bg-neutral-900/95 backdrop-blur-xl border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
               <button 
                 onClick={() => { setView("wishlist"); setIsMenuOpen(false); }}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "wishlist" ? "bg-white/15 text-purple-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "wishlist" ? "bg-white/15 text-purple-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
               >
-                <Heart className={`w-4 h-4 ${view === "wishlist" ? "text-purple-400" : "text-white/60"}`} />
+                <Heart className={`w-4 h-4 ${(view as any) === "wishlist" ? "text-purple-400" : "text-white/60"}`} />
                 <span className="text-xs">Lịch sử theo dõi</span>
               </button>
               <button 
                 onClick={() => { setView("price_chart"); setIsMenuOpen(false); }}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "price_chart" ? "bg-white/15 text-emerald-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "price_chart" ? "bg-white/15 text-emerald-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
               >
-                <TrendingUp className={`w-4 h-4 ${view === "price_chart" ? "text-emerald-400" : "text-white/60"}`} />
+                <TrendingUp className={`w-4 h-4 ${(view as any) === "price_chart" ? "text-emerald-400" : "text-white/60"}`} />
                 <span className="text-xs">Biểu đồ giá</span>
               </button>
               <button 
                 onClick={() => { setView("account"); setIsMenuOpen(false); }}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "account" ? "bg-white/15 text-pink-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "account" ? "bg-white/15 text-pink-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
               >
-                <User className={`w-4 h-4 ${view === "account" ? "text-pink-400" : "text-white/60"}`} />
+                <User className={`w-4 h-4 ${(view as any) === "account" ? "text-pink-400" : "text-white/60"}`} />
                 <span className="text-xs">Tài khoản</span>
               </button>
               <div className="h-px bg-white/10 my-1 mx-2" />
               <button 
                 onClick={() => { setView("main"); setIsMenuOpen(false); }}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${view === "main" ? "bg-white/15 text-sky-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "main" ? "bg-white/15 text-sky-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
               >
-                <Radio className={`w-4 h-4 ${view === "main" ? "text-sky-400" : "text-white/60"}`} />
+                <Radio className={`w-4 h-4 ${(view as any) === "main" ? "text-sky-400" : "text-white/60"}`} />
                 <span className="text-xs">Radar Săn Deal</span>
               </button>
             </div>
