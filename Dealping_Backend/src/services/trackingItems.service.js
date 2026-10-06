@@ -223,7 +223,19 @@ async function listBatchTrackingItems(userId) {
     if (item.platform === "SHOPEE" && item.itemId) {
       const liveData = batchPrices[item.itemId.toString()];
       if (liveData) {
-        serialized.livePrice = liveData.price;
+        let livePrice = liveData.price;
+        
+        // Nếu item có chọn model cụ thể, lấy giá của model đó
+        if (item.selectedModelId && liveData.variants && liveData.variants.length > 0) {
+          const selectedVariant = liveData.variants.find(
+            v => v.modelId && v.modelId.toString() === item.selectedModelId.toString()
+          );
+          if (selectedVariant && selectedVariant.price > 0) {
+            livePrice = selectedVariant.price;
+          }
+        }
+        
+        serialized.livePrice = livePrice;
         serialized.liveProductName = liveData.productName;
         serialized.liveImageUrl = liveData.imageUrl;
       }
@@ -245,7 +257,7 @@ async function previewTrackingItem(urlParams) {
   let imageUrl = null;
   let voucherPrice = null;
   let variants = [];
-    let affiliateUrl = resolvedUrl;
+  let affiliateUrl = resolvedUrl;
 
   if (resolvedUrl.includes("shopee.vn")) {
     affiliateUrl = affiliateService.generateShopeeAffiliate(resolvedUrl);
@@ -262,7 +274,7 @@ async function previewTrackingItem(urlParams) {
       productName = priceInfo.productName;
       imageUrl = priceInfo.imageUrl || null;
       variants = priceInfo.variants || [];
-        // Use actual voucher/commission data from API only — no guessing
+      // Use actual voucher/commission data from API only — no guessing
       if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;

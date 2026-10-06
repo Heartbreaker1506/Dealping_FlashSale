@@ -91,7 +91,19 @@ function startCronJobs() {
           for (const item of chunk) {
             const itemIdStr = item.itemId.toString();
             if (batchResults[itemIdStr]) {
-               await processPriceUpdate(item, batchResults[itemIdStr].price);
+               const itemData = batchResults[itemIdStr];
+               let currentPrice = itemData.price;
+               
+               if (item.selectedModelId && itemData.variants && itemData.variants.length > 0) {
+                 const selectedVariant = itemData.variants.find(
+                   v => v.modelId && v.modelId.toString() === item.selectedModelId.toString()
+                 );
+                 if (selectedVariant && selectedVariant.price > 0) {
+                   currentPrice = selectedVariant.price;
+                 }
+               }
+               
+               await processPriceUpdate(item, currentPrice);
             }
           }
         } catch (e) {

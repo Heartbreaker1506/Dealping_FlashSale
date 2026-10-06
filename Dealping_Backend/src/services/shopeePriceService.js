@@ -59,13 +59,21 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
         console.error("[DB Error] Lỗi khi lưu cache Shopee:", dbErr.message);
       }
 
+      const rawModels = product.models || [];
+      const variants = rawModels.map(m => ({
+        modelId: m.modelid,
+        name: m.name,
+        price: (m.price && m.price > 100000) ? m.price / 100000 : m.price, // Format price
+        stock: m.stock
+      }));
+
       return {
         price: price,
         productName: productName,
         imageUrl: imageUrl,
         isXtra: false,
         sellerComFinal: 0,
-        variants: product.variants || product.models || product.tier_variations || [],
+        variants: variants.length > 0 ? variants : (product.variants || product.tier_variations || []),
         flashSalePrice: parseFloat(product.flashSalePrice) || null,
         cashbackCommission: 0,
         discountCodes: []
@@ -151,13 +159,21 @@ async function fetchBatchPrices(itemIds) {
           const productName = name || "Sản phẩm Shopee";
           const imageUrl = item.imageUrl || item.image || item.image_url || null;
           
+          const rawModels = item.models || [];
+          const variants = rawModels.map(m => ({
+            modelId: m.modelid,
+            name: m.name,
+            price: (m.price && m.price > 100000) ? m.price / 100000 : m.price,
+            stock: m.stock
+          }));
+          
           resultMap[itemId.toString()] = {
             price: price,
             productName: productName,
             imageUrl: imageUrl,
             isXtra: false,
             sellerComFinal: 0,
-            variants: item.variants || [],
+            variants: variants,
             flashSalePrice: parseFloat(item.flashSalePrice) || null
           };
           
