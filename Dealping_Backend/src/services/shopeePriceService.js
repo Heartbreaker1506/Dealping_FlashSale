@@ -59,13 +59,18 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
         console.error("[DB Error] Lỗi khi lưu cache Shopee:", dbErr.message);
       }
 
-      const rawModels = product.models || [];
-      const variants = rawModels.map(m => ({
-        modelId: m.modelid,
-        name: m.name,
-        price: (m.price && m.price > 100000) ? m.price / 100000 : m.price, // Format price
-        stock: m.stock
-      }));
+      let rawModels = product.models || (product.item && product.item.models) || (data.data && data.data.item && data.data.item.models) || product.variations || [];
+      
+      const variants = rawModels.map(m => {
+        let p = m.price || m.original_price || m.current_price;
+        if (p && p > 100000) p = p / 100000;
+        return {
+          modelId: m.modelid || m.id || m.variation_id || m.name,
+          name: m.name || m.variation_name || m.model_name || "M?u",
+          price: p || priceVal,
+          stock: m.stock || m.normal_stock || 0
+        };
+      }).filter(v => v.name && v.price > 0);
 
       return {
         price: price,
