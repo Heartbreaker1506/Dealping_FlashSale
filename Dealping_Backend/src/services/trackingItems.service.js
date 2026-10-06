@@ -85,6 +85,7 @@ async function createTrackingItem({
 
   let imageUrl = null;
   let voucherPrice = null;
+  let variants = [];
 
   try {
     if (platform === "SHOPEE") {
@@ -92,7 +93,9 @@ async function createTrackingItem({
       if (!currentPrice && priceInfo.price > 0) currentPrice = priceInfo.price;
       if (!productName) productName = priceInfo.productName;
       imageUrl = priceInfo.imageUrl || null;
-      // Use actual voucher/commission data from API only — no guessing
+        variants = priceInfo.variants || [];
+      variants = priceInfo.variants || [];
+        // Use actual voucher/commission data from API only — no guessing
       if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;
@@ -241,7 +244,8 @@ async function previewTrackingItem(urlParams) {
   let currentPrice = null;
   let imageUrl = null;
   let voucherPrice = null;
-  let affiliateUrl = resolvedUrl;
+  let variants = [];
+    let affiliateUrl = resolvedUrl;
 
   if (resolvedUrl.includes("shopee.vn")) {
     affiliateUrl = affiliateService.generateShopeeAffiliate(resolvedUrl);
@@ -257,7 +261,8 @@ async function previewTrackingItem(urlParams) {
       currentPrice = priceInfo.price;
       productName = priceInfo.productName;
       imageUrl = priceInfo.imageUrl || null;
-      // Use actual voucher/commission data from API only — no guessing
+      variants = priceInfo.variants || [];
+        // Use actual voucher/commission data from API only — no guessing
       if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;
@@ -287,7 +292,7 @@ async function previewTrackingItem(urlParams) {
     price: currentPrice,
     resolvedUrl,
     platform,
-    variants: [],
+    variants,
     imageUrl,
     voucherPrice,
     affiliateUrl,

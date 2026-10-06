@@ -65,7 +65,7 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
         imageUrl: imageUrl,
         isXtra: false,
         sellerComFinal: 0,
-        variants: product.variants || [],
+        variants: product.variants || product.models || product.tier_variations || [],
         flashSalePrice: parseFloat(product.flashSalePrice) || null,
         cashbackCommission: 0,
         discountCodes: []
