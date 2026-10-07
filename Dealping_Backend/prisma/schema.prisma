@@ -50,6 +50,7 @@ model TrackingItem {
   originalPrice Decimal?   @map("original_price") @db.Decimal(12, 2)
   targetPrice   Decimal    @map("target_price") @db.Decimal(12, 2)
   productUrl    String     @map("shopee_url") // Giữ column name shopee_url để không mất data
+  imageUrl      String?    @map("image_url")
   platform      Platform   @default(SHOPEE)
   affiliateUrl  String?    @map("affiliate_url")
   status        ItemStatus @default(TRACKING)

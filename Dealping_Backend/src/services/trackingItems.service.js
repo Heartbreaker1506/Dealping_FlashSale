@@ -24,6 +24,7 @@ async function createTrackingItem({
   selectedModelId,
   productName: inputProductName,
   originalPrice: inputOriginalPrice,
+  imageUrl: inputImageUrl,
 }) {
   const finalUrl = shopeeUrl || productUrl;
   if (!userId || !finalUrl || targetPrice === undefined) {
@@ -64,9 +65,13 @@ async function createTrackingItem({
   });
   
   if (existing) {
+    const updateData = { targetPrice, variantName };
+    if (inputImageUrl) {
+      updateData.imageUrl = inputImageUrl;
+    }
     const updated = await prisma.trackingItem.update({
       where: { id: existing.id },
-      data: { targetPrice, variantName }
+      data: updateData
     });
     return serializeItem(updated);
   }
@@ -83,7 +88,7 @@ async function createTrackingItem({
     affiliateUrl = await affiliateService.generateLazadaAffiliate(resolvedUrl);
   }
 
-  let imageUrl = null;
+  let imageUrl = inputImageUrl || null;
   let voucherPrice = null;
   let variants = [];
 
@@ -92,8 +97,8 @@ async function createTrackingItem({
       const priceInfo = await shopeePriceService.fetchCurrentPrice(itemId, shopId, resolvedUrl);
       if (!currentPrice && priceInfo.price > 0) currentPrice = priceInfo.price;
       if (!productName) productName = priceInfo.productName;
-      imageUrl = priceInfo.imageUrl || null;
-        variants = priceInfo.variants || [];
+      if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
+      variants = priceInfo.variants || [];
       variants = priceInfo.variants || [];
         // Use actual voucher/commission data from API only — no guessing
       if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
@@ -128,6 +133,7 @@ async function createTrackingItem({
       originalPrice: currentPrice,
       targetPrice,
       productUrl: resolvedUrl,
+      imageUrl: imageUrl,
       platform: platform || "SHOPEE",
       affiliateUrl: affiliateUrl,
       status: "TRACKING",

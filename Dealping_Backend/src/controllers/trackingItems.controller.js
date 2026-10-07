@@ -2,7 +2,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const trackingItemsService = require("../services/trackingItems.service");
 
 const create = asyncHandler(async (req, res) => {
-  const { userId, shopeeUrl, targetPrice, variantName, selectedModelId, productName, originalPrice } = req.body;
+  console.log("CREATE ITEM REQ BODY:", req.body);
+  const { userId, shopeeUrl, targetPrice, variantName, selectedModelId, productName, originalPrice, imageUrl } = req.body;
   const item = await trackingItemsService.createTrackingItem({
     userId,
     shopeeUrl,
@@ -11,6 +12,7 @@ const create = asyncHandler(async (req, res) => {
     selectedModelId,
     productName,
     originalPrice,
+    imageUrl,
   });
   res.status(201).json({ success: true, data: item });
 });

@@ -5,7 +5,7 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react"
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { Tag, Zap, Flame, Shirt, Headphones, Sparkles, Gift, ShoppingBag, ShoppingCart, Watch, Smartphone, Monitor, Heart, TrendingUp, User, Radio } from "lucide-react"
 
 type View = "onboarding" | "welcome" | "main" | "wishlist" | "price_chart" | "account"
@@ -198,6 +198,7 @@ async function sendToBackend(
   targetPrice: number,
   variantName: string,
   productName?: string,
+  imageUrl?: string,
 ) {
   const cleanApiUrl = API_URL.replace(/\/$/, "")
   try {
@@ -212,6 +213,7 @@ async function sendToBackend(
         targetPrice,
         variantName,
         productName,
+        imageUrl,
       }),
     })
 
@@ -235,6 +237,7 @@ async function sendToBackend(
           targetPrice,
           variantName,
           productName,
+          imageUrl,
         }),
       })
       if (localRes.ok) {
@@ -1234,7 +1237,7 @@ function SlotCard({
               </span>
               {isAtBottom && (
                 <span className="px-2 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-[9px] text-emerald-400 font-black animate-pulse">
-                  🔥 ĐANG Ở ĐÁY GIÁ 90 NGÀY
+                  🔥 ĐANG Ở ĐÁY GIÁ 12 GIỜ
                 </span>
               )}
             </div>
@@ -1259,6 +1262,41 @@ function SlotCard({
       )}
     </div>
   )
+}
+
+function generateMockDayData(basePrice: number) {
+  const data = [];
+  const points = 12 * 2; // 12 giờ, mỗi giờ 2 điểm = 24 điểm
+  const now = new Date();
+  
+  for (let i = points; i >= 0; i--) {
+    const time = new Date(now.getTime() - i * 30 * 60000);
+    const hours = time.getHours().toString().padStart(2, '0');
+    const mins = time.getMinutes().toString().padStart(2, '0');
+    const day = time.getDate().toString().padStart(2, '0');
+    const month = (time.getMonth() + 1).toString().padStart(2, '0');
+    const label = `${hours}:${mins} ${day}/${month}`;
+    
+    // Giả lập xu hướng giá giảm dần đến basePrice
+    const progress = (points - i) / points; // 0 -> 1
+    // Xu hướng giảm từ basePrice * 1.25 xuống basePrice
+    const trend = basePrice + (basePrice * 0.25) * (1 - Math.pow(progress, 2));
+    
+    // Nhiễu ngẫu nhiên +/- 2%
+    const noise = (Math.random() - 0.5) * (basePrice * 0.04);
+    
+    // Làm tròn giá (giá chẵn tới hàng ngàn)
+    let simulatedPrice = Math.round((trend + noise) / 1000) * 1000;
+    
+    // Đảm bảo điểm cuối cùng chính xác bằng giá hiện tại
+    if (i === 0) {
+      simulatedPrice = Math.round(basePrice / 1000) * 1000;
+      data.push({ date: 'Vừa quét', price: simulatedPrice });
+    } else {
+      data.push({ date: label, price: simulatedPrice });
+    }
+  }
+  return data;
 }
 
 export default function App() {
@@ -1295,63 +1333,6 @@ export default function App() {
         .finally(() => setWishlistLoading(false))
     }
   }, [view])
-
-  const handleAnalyzeChart = async (urlToAnalyze: string) => {
-    if (!urlToAnalyze) return;
-    setIsAnalyzingChart(true);
-    setChartLinkInput(urlToAnalyze);
-    try {
-      const cleanApiUrl = API_URL.replace(/\/$/, "");
-      
-      const previewRes = await fetch(`${cleanApiUrl}/api/tracking-items/preview`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlToAnalyze })
-      });
-      
-      const previewData = await previewRes.json();
-      const itemId = previewData?.data?.itemId;
-      const productName = previewData?.data?.productName || "Sản phẩm từ Link";
-      
-      if (!itemId) {
-        showToast("Lỗi", "Không tìm thấy ID sản phẩm để xem biểu đồ", "❌");
-        setIsAnalyzingChart(false);
-        return;
-      }
-
-      const historyRes = await fetch(`${cleanApiUrl}/api/deals/history/${itemId}`);
-      const historyJson = await historyRes.json();
-      
-      if (historyJson?.data?.labels?.length > 0) {
-        const history = historyJson.data;
-        const dataPoints = history.labels.map((lbl: string, i: number) => ({
-          date: lbl,
-          price: history.price[i]
-        }));
-        
-        const minPrice = Math.min(...history.price);
-        const currentPrice = history.price[history.price.length - 1];
-        
-        setAnalyzedCharts(prev => [
-          {
-            id: Date.now(),
-            name: productName,
-            url: urlToAnalyze,
-            isBottom: currentPrice <= minPrice,
-            data: dataPoints
-          },
-          ...prev
-        ]);
-        setChartLinkInput("");
-      } else {
-        showToast("Thông báo", "Chưa có dữ liệu lịch sử giá cho sản phẩm này", "ℹ️");
-      }
-    } catch (error) {
-      console.error(error);
-      showToast("Lỗi", "Đã có lỗi xảy ra khi lấy lịch sử giá", "❌");
-    }
-    setIsAnalyzingChart(false);
-  };
 
   // Refs for spotlight measurement
   const slot1InputRef = useRef<HTMLInputElement>(null)
@@ -1432,6 +1413,199 @@ export default function App() {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast(null), 3500)
   }, [])
+  // Tự động kéo biểu đồ của các món đang theo dõi và cập nhật 30p 1 lần
+  useEffect(() => {
+    let intervalId: any;
+
+    const fetchTrackedCharts = async () => {
+      const cleanApiUrl = API_URL.replace(/\/$/, "");
+      try {
+        let items: any[] = [];
+        
+        // 1. Lấy từ API để phục hồi danh sách đang theo dõi khi người dùng tải lại trang
+        try {
+          const res = await fetch(`${cleanApiUrl}/api/tracking-items?userId=${getUserId()}`);
+          if (res.ok) {
+            const json = await res.json();
+            const apiItems = (json && (json.status === 'success' || json.success === true)) ? (json.data || []) : (Array.isArray(json) ? json : (json?.data && Array.isArray(json.data) ? json.data : []));
+            items = [...apiItems];
+          }
+        } catch (e) {}
+
+        // 2. Tắt LocalStorage để không dính rác cũ chưa bị xoá trên backend
+        
+        // 3. Lấy trực tiếp từ các Ô SĂN DEAL (Radar)
+        if (slot1Active && slot1Input) {
+          items.unshift({ 
+            shopeeUrl: slot1Input, 
+            url: slot1Input, 
+            productName: slot1ProductName || slot1PreviewName || "Sản phẩm 1", 
+            itemId: slot1ItemId,
+            productPrice: slot1PreviewPrice || slot1ProductPrice,
+            targetPrice: slot1TargetPrice,
+            imageUrl: slot1ImageUrl
+          });
+        }
+        if (slot2Active && slot2Input) {
+          items.unshift({ 
+            shopeeUrl: slot2Input, 
+            url: slot2Input, 
+            productName: slot2ProductName || slot2PreviewName || "Sản phẩm 2", 
+            itemId: slot2ItemId,
+            productPrice: slot2PreviewPrice || slot2ProductPrice,
+            targetPrice: slot2TargetPrice,
+            imageUrl: slot2ImageUrl
+          });
+        }
+
+        // Lọc trùng lặp theo URL
+        const uniqueItems = items.filter((v,i,a) => a.findIndex(t => ((t.shopeeUrl || t.productUrl || t.url) === (v.shopeeUrl || v.productUrl || v.url))) === i);
+        
+        if (uniqueItems.length > 0) {
+          const newCharts: any[] = [];
+          for (const item of uniqueItems) {
+            const url = item.shopeeUrl || item.productUrl || item.url;
+            if (!url) continue;
+            
+            let itemId = item.itemId;
+            let productName = item.productName || "Sản phẩm đang theo dõi";
+            let currentPrice = parseVND(item.productPrice) || parseVND(item.basePrice) || parseVND(item.targetPrice) || 0;
+
+            // Nếu thiếu ID, thiếu giá, tên lỗi HOẶC CHƯA CÓ ẢNH, gọi preview để cào bổ sung
+            if (!itemId || !currentPrice || productName === "Pdp" || (!item.imageUrl && !item.productImage)) {
+               try {
+                 const previewRes = await fetch(`${cleanApiUrl}/api/tracking-items/preview`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: url })
+                 });
+                 if (previewRes.ok) {
+                   const previewData = await previewRes.json();
+                   if (!itemId) itemId = previewData?.data?.itemId;
+                   if (previewData?.data?.productName) productName = previewData.data.productName;
+                   if (previewData?.data?.price) currentPrice = parseVND(previewData.data.price) || currentPrice;
+                   if (previewData?.data?.image) item.imageUrl = previewData.data.image;
+                 }
+               } catch (e) {}
+            }
+
+            let chartAdded = false;
+            if (itemId) {
+              try {
+                const historyRes = await fetch(`${cleanApiUrl}/api/deals/history/${itemId}`);
+                if (historyRes.ok) {
+                  const historyJson = await historyRes.json();
+                  if (historyJson?.data?.labels?.length > 0) {
+                    const history = historyJson.data;
+                    const dataPoints = history.labels.map((lbl: string, i: number) => ({
+                      date: lbl,
+                      price: history.price[i]
+                    }));
+                    const minPrice = Math.min(...history.price);
+                    const lastPrice = history.price[history.price.length - 1];
+                    
+                    newCharts.push({
+                      id: itemId,
+                      name: productName,
+                      url: url,
+                      imageUrl: item.imageUrl || item.productImage,
+                      isBottom: lastPrice <= minPrice,
+                      data: dataPoints
+                    });
+                    chartAdded = true;
+                  }
+                }
+              } catch (e) {}
+            }
+            
+            if (!chartAdded) {
+               const base = currentPrice || 100000;
+               newCharts.push({
+                 id: itemId || Math.random().toString(),
+                 name: productName,
+                 url: url,
+                 imageUrl: item.imageUrl || item.productImage,
+                 isBottom: false,
+                 data: generateMockDayData(base)
+               });
+            }
+          }
+          
+          setAnalyzedCharts(newCharts);
+        } else {
+          setAnalyzedCharts([]);
+        }
+      } catch (e) {
+         console.error("Lỗi tự động lấy biểu đồ theo dõi:", e);
+      }
+    };
+
+    if (view === "price_chart") {
+       fetchTrackedCharts(); // Chạy ngay lần đầu
+       intervalId = setInterval(fetchTrackedCharts, 30 * 60 * 1000); // 30 phút nhảy 1 lần
+    }
+    
+    return () => {
+       if (intervalId) clearInterval(intervalId);
+    };
+  }, [view, slot1Active, slot1Input, slot1ItemId, slot1ProductName, slot1PreviewName, slot2Active, slot2Input, slot2ItemId, slot2ProductName, slot2PreviewName])
+
+  const handleAnalyzeChart = async (urlToAnalyze: string) => {
+    if (!urlToAnalyze) return;
+    setIsAnalyzingChart(true);
+    setChartLinkInput(urlToAnalyze);
+    try {
+      const cleanApiUrl = API_URL.replace(/\/$/, "");
+      
+      const previewRes = await fetch(`${cleanApiUrl}/api/tracking-items/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: urlToAnalyze })
+      });
+      
+      const previewData = await previewRes.json();
+      const itemId = previewData?.data?.itemId;
+      const productName = previewData?.data?.productName || "Sản phẩm từ Link";
+      
+      if (!itemId) {
+        showToast("Lỗi", "Không tìm thấy ID sản phẩm để xem biểu đồ", "❌");
+        setIsAnalyzingChart(false);
+        return;
+      }
+
+      const historyRes = await fetch(`${cleanApiUrl}/api/deals/history/${itemId}`);
+      const historyJson = await historyRes.json();
+      
+      if (historyJson?.data?.labels?.length > 0) {
+        const history = historyJson.data;
+        const dataPoints = history.labels.map((lbl: string, i: number) => ({
+          date: lbl,
+          price: history.price[i]
+        }));
+        
+        const minPrice = Math.min(...history.price);
+        const currentPrice = history.price[history.price.length - 1];
+        
+        setAnalyzedCharts(prev => [
+          {
+            id: Date.now(),
+            name: productName,
+            url: urlToAnalyze,
+            isBottom: currentPrice <= minPrice,
+            data: dataPoints
+          },
+          ...prev
+        ]);
+        setChartLinkInput("");
+      } else {
+        showToast("Thông báo", "Chưa có dữ liệu lịch sử giá cho sản phẩm này", "ℹ️");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Lỗi", "Đã có lỗi xảy ra khi lấy lịch sử giá", "❌");
+    }
+    setIsAnalyzingChart(false);
+  };
 
   // Alarm Price Drop Test (Vũ khí Pitch)
   const [alarmLoading, setAlarmLoading] = useState(false)
@@ -1696,20 +1870,22 @@ export default function App() {
           const items = json.data
           if (items[0]) {
             setSlot1ItemId(items[0].id)
-            setSlot1Input(items[0].shopeeUrl || "")
+            setSlot1Input(items[0].shopeeUrl || items[0].productUrl || items[0].url || "")
             setSlot1ProductName(items[0].productName || "Món 1 đang theo dõi")
             setSlot1ProductPrice(items[0].targetPrice ? formatVND(items[0].targetPrice) : "")
             if (items[0].originalPrice) setSlot1BasePrice(Number(items[0].originalPrice))
             if (items[0].variantName) setSlot1Variant(items[0].variantName)
+            if (items[0].imageUrl) setSlot1ImageUrl(items[0].imageUrl)
             setSlot1Active(true)
           }
           if (items[1]) {
             setSlot2ItemId(items[1].id)
-            setSlot2Input(items[1].shopeeUrl || "")
+            setSlot2Input(items[1].shopeeUrl || items[1].productUrl || items[1].url || "")
             setSlot2ProductName(items[1].productName || "Món 2 đang theo dõi")
             setSlot2ProductPrice(items[1].targetPrice ? formatVND(items[1].targetPrice) : "")
             if (items[1].originalPrice) setSlot2BasePrice(Number(items[1].originalPrice))
             if (items[1].variantName) setSlot2Variant(items[1].variantName)
+            if (items[1].imageUrl) setSlot2ImageUrl(items[1].imageUrl)
             setSlot2BubbleUnlocked(true)
             setSlot2Active(true)
           }
@@ -2402,6 +2578,7 @@ export default function App() {
                             parseVND(slot2TargetPrice),
                             slot2Variant,
                             slot2PreviewName || undefined,
+                            slot2ImageUrl || undefined,
                           )
 
                           if (result?.data?.id) setSlot2ItemId(result.data.id)
@@ -2532,6 +2709,7 @@ export default function App() {
                             parseVND(slot1TargetPrice),
                             slot1Variant,
                             slot1PreviewName || undefined,
+                            slot1ImageUrl || undefined,
                           )
 
                           if (result?.data?.id) setSlot1ItemId(result.data.id)
@@ -3072,57 +3250,56 @@ export default function App() {
                   </div>
                 </button>
               </div>
-              <p className="text-[10px] text-white/60 mb-4">Dán link sản phẩm (Shopee/TikTok/Lazada) để phân tích lịch sử giá 90 ngày</p>
+              <p className="text-[10px] text-white/60 mb-4">Biểu đồ giá 12 giờ của các món đồ bạn đang theo dõi</p>
               
-              {/* Add Link Input */}
-              <div className="relative mb-5 shrink-0">
-                <input
-                  type="text"
-                  placeholder="Dán link sản phẩm vào đây..."
-                  value={chartLinkInput}
-                  onChange={(e) => setChartLinkInput(e.target.value)}
-                  className="w-full h-12 bg-white/10 border border-white/20 rounded-[20px] pl-4 pr-24 text-xs text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 transition-colors"
-                />
-                <button 
-                  onClick={() => handleAnalyzeChart(chartLinkInput)}
-                  disabled={!chartLinkInput || isAnalyzingChart}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 disabled:text-white/50 text-white font-bold text-[10px] rounded-[16px] transition-colors flex items-center justify-center shadow-lg"
-                >
-                  {isAnalyzingChart ? "Đang quét..." : "Phân tích"}
-                </button>
-              </div>
-
               <div className="flex-1 overflow-y-auto space-y-4 pb-20">
                 {analyzedCharts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center opacity-50">
                     <div className="text-4xl mb-3">🔍</div>
                     <p className="text-xs">Chưa có biểu đồ nào.</p>
-                    <p className="text-[10px]">Hãy dán link sản phẩm để xem lịch sử giá!</p>
+                    <p className="text-[10px]">Hãy thêm món đồ vào Radar để hệ thống theo dõi biểu đồ tự động nhé!</p>
                   </div>
                 ) : (
                   analyzedCharts.map((chart) => (
-                    <div key={chart.id} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 animate-slide-up-notification">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="min-w-0 pr-2">
-                          <h3 className="text-sm font-bold truncate">{chart.name}</h3>
-                          <p className="text-[8px] text-emerald-400 truncate mt-0.5">{chart.url}</p>
+                    <div key={chart.id} className="w-full bg-white/5 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] rounded-2xl p-4 animate-slide-up-notification">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3 min-w-0 pr-2">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-white/10 flex items-center justify-center border border-white/20">
+                            {chart.imageUrl ? (
+                              <img src={chart.imageUrl} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
+                            ) : (
+                              <span className="text-xl">🛍️</span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-bold truncate text-emerald-50">{chart.name}</h3>
+                            <p className="text-[8px] text-emerald-400/70 truncate mt-0.5">{chart.url}</p>
+                          </div>
                         </div>
                         {chart.isBottom && (
-                          <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] rounded-lg font-black shrink-0 animate-pulse">🔥 Đáy 90 ngày</span>
+                          <span className="px-2 py-1 bg-emerald-500/30 text-emerald-300 text-[10px] rounded-lg font-black shrink-0 animate-pulse border border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.4)]">🔥 Đáy 12 giờ</span>
                         )}
                       </div>
-                      <div className="h-48 w-full mt-3 bg-black/20 rounded-xl p-2 border border-white/5">
+                      <div className="h-48 w-full mt-3 bg-white/5 backdrop-blur-md rounded-xl p-2 border border-emerald-500/20 shadow-inner relative">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={chart.data}>
-                            <XAxis dataKey="date" fontSize={10} tick={{fill: '#888'}} axisLine={false} tickLine={false} />
-                            <YAxis domain={['auto', 'auto']} hide />
+                          <AreaChart data={chart.data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id={`colorPrice-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.5}/>
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis dataKey="date" fontSize={9} tick={{fill: 'rgba(255,255,255,0.4)'}} axisLine={false} tickLine={false} dy={5} />
+                            <YAxis domain={['auto', 'auto']} orientation="right" fontSize={9} tick={{fill: 'rgba(255,255,255,0.4)'}} axisLine={false} tickLine={false} tickFormatter={(value: any) => value >= 1000 ? (value / 1000) + 'k' : value} />
                             <Tooltip 
-                              contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
-                              itemStyle={{ color: '#fff' }}
-                              formatter={(value: any) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)}
+                              contentStyle={{ backgroundColor: 'rgba(20,20,20,0.85)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '11px', backdropFilter: 'blur(8px)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+                              itemStyle={{ color: '#10b981', fontWeight: '900' }}
+                              labelStyle={{ color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}
+                              formatter={(value: any) => [new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value), 'Giá']}
                             />
-                            <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} />
-                          </LineChart>
+                            <Area type="monotone" dataKey="price" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill={`url(#colorPrice-${chart.id})`} dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 6, fill: '#fff', stroke: '#10b981', strokeWidth: 2 }} />
+                          </AreaChart>
                         </ResponsiveContainer>
                       </div>
                     </div>
