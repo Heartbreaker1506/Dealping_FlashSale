@@ -160,3 +160,11 @@
   border: 2px solid rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
+
+
+@media (max-width: 768px) {
+  .light-mode .apple-glass, .light-mode .apple-sheet, .dark-mode .apple-glass, .dark-mode .apple-sheet {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+}

@@ -596,7 +596,7 @@ function SpotlightOverlay({
       >
         {/* Render a fake bubble ONLY IF no real bubble was visible */}
         {!bubbleRect && (
-          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/50 flex items-center justify-center animate-bounce">
+          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm md:backdrop-blur- border border-white/50 flex items-center justify-center animate-bounce">
             <span className="text-xl">🎁</span>
           </div>
         )}
@@ -713,7 +713,7 @@ function OrderDetailModal({
   const trackingCode = data.itemId ? `#DP-${data.itemId.slice(-6).toUpperCase()}` : `#DP-RADAR0${data.slotNum}`
 
   return (
-    <div className="absolute inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3.5 overflow-y-auto animate-new-slot">
+    <div className="absolute inset-0 z-50 bg-black/75 backdrop-blur-sm md:backdrop-blur- flex items-center justify-center p-3.5 overflow-y-auto animate-new-slot">
       <div className="w-full max-w-sm rounded-[32px] p-5 shadow-[0_0_50px_rgba(168,85,247,0.35)] relative border-2 border-purple-400/40 bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-purple-950/80 text-white overflow-hidden my-auto max-h-[90vh] flex flex-col">
         {/* Glow ambient lights */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/30 rounded-full blur-2xl pointer-events-none" />
@@ -756,7 +756,7 @@ function OrderDetailModal({
                 <span className="text-3xl">🛍️</span>
               )}
               <div className="absolute top-1 left-1">
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-black/60 backdrop-blur-md text-amber-300">
+                <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-black/60 backdrop-blur-sm md:backdrop-blur- text-amber-300">
                   ⭐ 4.9+
                 </span>
               </div>
@@ -2147,7 +2147,7 @@ export default function App() {
                 setShowAlarmModal(true)
                 setPushNotification(null)
               }}
-              className="absolute top-11 left-3.5 right-3.5 z-50 p-3 rounded-[24px] bg-neutral-900/95 dark:bg-black/95 text-white backdrop-blur-2xl border border-white/25 shadow-[0_16px_45px_rgba(0,0,0,0.65)] cursor-pointer animate-slide-down-notification transition-all duration-300 active:scale-98"
+              className="absolute top-11 left-3.5 right-3.5 z-50 p-3 rounded-[24px] bg-neutral-900/95 dark:bg-black/95 text-white backdrop-blur-sm md:backdrop-blur- border border-white/25 shadow-[0_16px_45px_rgba(0,0,0,0.65)] cursor-pointer animate-slide-down-notification transition-all duration-300 active:scale-98"
             >
               <div className="flex items-start space-x-2.5">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-rose-500 to-amber-500 flex items-center justify-center text-lg shrink-0 shadow-md overflow-hidden">
@@ -2249,7 +2249,7 @@ export default function App() {
 
               {/* iOS-style notification permission dialog */}
               <div className="absolute inset-0 flex items-center justify-center px-8 z-10">
-                <div className="w-full bg-white/95 backdrop-blur-xl rounded-[28px] overflow-hidden shadow-2xl">
+                <div className="w-full bg-white/95 backdrop-blur-sm md:backdrop-blur- rounded-[28px] overflow-hidden shadow-2xl">
                   {/* App icon row */}
                   <div className="pt-6 pb-3 flex flex-col items-center text-center px-5">
                     <div className="w-16 h-16 rounded-[20px] apple-glow-btn flex items-center justify-center text-3xl mb-3 shadow-lg">
@@ -2404,7 +2404,7 @@ export default function App() {
                 <div className="absolute bottom-2.5 right-4 z-50">
                   {/* Menu Popup */}
                   {isMenuOpen && (
-                    <div className="absolute top-10 right-0 mt-2 bg-neutral-900/95 backdrop-blur-xl border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
+                    <div className="absolute top-10 right-0 mt-2 bg-neutral-900/95 backdrop-blur-sm md:backdrop-blur- border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
                       <button 
                         onClick={() => { setView("wishlist"); setIsMenuOpen(false); }}
                         className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "wishlist" ? "bg-white/15 text-purple-400 font-bold" : "hover:bg-white/10 text-white/80"}`}
@@ -3052,7 +3052,7 @@ export default function App() {
 
           {/* MODAL: BÁO ĐỘNG SẬP GIÁ (VŨ KHÍ PITCH) */}
           {showAlarmModal && alarmData && (
-            <div className="absolute inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="absolute inset-0 z-50 bg-black/75 backdrop-blur-sm md:backdrop-blur- flex items-center justify-center p-4">
               <div className="w-full max-w-sm rounded-[32px] p-5 shadow-[0_0_50px_rgba(239,68,68,0.5)] text-center relative border-2 border-red-500/80 bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-red-950/80 text-white overflow-hidden animate-new-slot">
                 {/* Background glow orbs */}
                 <div className="absolute -top-12 -right-12 w-36 h-36 bg-red-600/30 rounded-full blur-2xl pointer-events-none" />
@@ -3280,7 +3280,7 @@ export default function App() {
                           <span className="px-2 py-1 bg-emerald-500/30 text-emerald-300 text-[10px] rounded-lg font-black shrink-0 animate-pulse border border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.4)]">🔥 Đáy 12 giờ</span>
                         )}
                       </div>
-                      <div className="h-48 w-full mt-3 bg-white/5 backdrop-blur-md rounded-xl p-2 border border-emerald-500/20 shadow-inner relative">
+                      <div className="h-48 w-full mt-3 bg-white/5 backdrop-blur-sm md:backdrop-blur- rounded-xl p-2 border border-emerald-500/20 shadow-inner relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={chart.data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                             <defs>
@@ -3361,7 +3361,7 @@ export default function App() {
 
           {/* Global Menu Popup (For views other than main) */}
           {isMenuOpen && view !== "main" && (
-            <div className="absolute top-[140px] right-5 z-50 bg-neutral-900/95 backdrop-blur-xl border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
+            <div className="absolute top-[140px] right-5 z-50 bg-neutral-900/95 backdrop-blur-sm md:backdrop-blur- border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification">
               <button 
                 onClick={() => { setView("wishlist"); setIsMenuOpen(false); }}
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${(view as any) === "wishlist" ? "bg-white/15 text-purple-400 font-bold" : "hover:bg-white/10 text-white/80"}`}

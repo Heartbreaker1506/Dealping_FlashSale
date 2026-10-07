@@ -129,7 +129,7 @@ export function NotificationCenterModal({
       : notifications
 
   return (
-    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 animate-new-slot">
+    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm md:backdrop-blur- flex items-center justify-center p-3 animate-new-slot">
       <div
         className={`w-full max-w-sm rounded-[32px] p-4.5 shadow-[0_0_50px_rgba(236,72,153,0.35)] relative border-2 border-pink-500/40 ${
           isDark
