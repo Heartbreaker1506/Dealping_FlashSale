@@ -567,8 +567,8 @@ function SpotlightOverlay({
   // ── STEP 2: glowing dot in radar area, tooltip below ─────────────────────
   
   // If we found a real bubble, use its center. Otherwise fallback to radar center.
-  const fallbackTop = radarRect ? radarRect.top + radarRect.height / 2 : 150
-  const fallbackLeft = radarRect ? radarRect.left + radarRect.width / 2 : 120
+  const fallbackTop = radarRect ? radarRect.top + radarRect.height / 2 - 50 : 100
+  const fallbackLeft = radarRect ? radarRect.left + radarRect.width / 2 - 100 : 60
 
   const bTop = bubbleRect ? bubbleRect.top + bubbleRect.height / 2 : fallbackTop
   const bLeft = bubbleRect ? bubbleRect.left + bubbleRect.width / 2 : fallbackLeft
@@ -1301,8 +1301,14 @@ function generateMockDayData(basePrice: number) {
 
 export default function App() {
   const [mounted, setMounted] = useState(false)
-  const [view, setView] = useState<View>("onboarding")
-  const [isDark, setIsDark] = useState(false)
+  const [view, setView] = useState<View>(() => {
+    if (typeof window !== 'undefined') {
+      const done = localStorage.getItem('dealping_onboarded')
+      if (done === 'true') return 'main'
+    }
+    return (typeof Notification !== 'undefined' && Notification.permission === 'granted') ? "welcome" : "onboarding"
+  })
+  const [isDark, setIsDark] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   // Price Chart View State
@@ -2039,25 +2045,29 @@ export default function App() {
       }
     }
 
+    localStorage.setItem('dealping_onboarded', 'true')
     setSpotlightStep("none")
     setView("welcome")
   }, [])
 
   const enterMain = useCallback((showTutorial = true) => {
+    localStorage.setItem('dealping_onboarded', 'true')
     setView("main")
-    if (showTutorial) {
+    const isTutorialDone = localStorage.getItem(TUTORIAL_KEY)
+    if (showTutorial && !isTutorialDone) {
       setTimeout(() => setSpotlightStep("slot1"), 450)
     }
   }, [])
 
   const finishTutorial = useCallback(() => {
+    localStorage.setItem(TUTORIAL_KEY, "true")
     setSpotlightStep("none")
   }, [])
 
   const activeCount = (slot1Active ? 1 : 0) + (slot2Active ? 1 : 0)
   const slotIndicator = slot2BubbleUnlocked
-    ? `${Math.min(maxSlots, 2)} / ${Math.min(maxSlots, 2)} Món`
-    : `1 / ${Math.min(maxSlots, 2)} Món`
+    ? `${Math.max(maxSlots, 2)} / ${Math.max(maxSlots, 2)} Món`
+    : `1 / ${Math.max(maxSlots, 1)} Món`
   const themeClass = isDark ? "dark-mode" : "light-mode"
 
   const [slot1VariantOpts, setSlot1VariantOpts] = useState<any[]>([])
@@ -2215,6 +2225,7 @@ export default function App() {
 
                 <button
                   onClick={() => {
+                    localStorage.removeItem(TUTORIAL_KEY)
                     setSpotlightStep("none")
                     setView("welcome")
                   }}
@@ -2273,6 +2284,7 @@ export default function App() {
                   <div className="flex">
                     <button
                       onClick={() => {
+                        localStorage.setItem('dealping_onboarded', 'true')
                         setSpotlightStep("none")
                         setView("welcome")
                       }}
@@ -2330,10 +2342,10 @@ export default function App() {
               {/* RADAR HEADER */}
               <div
                 id="radar-header-area"
-                className="relative h-44 w-full flex items-center justify-center shrink-0"
+                className="relative h-[280px] w-full flex items-center justify-center shrink-0 pt-4"
               >
-                <div className="absolute w-36 h-36 rounded-full border-2 border-white/30 animate-ping opacity-20 pointer-events-none" />
-                <div className="absolute w-24 h-24 rounded-full border border-pink-400/40 animate-pulse opacity-30 pointer-events-none" />
+                <div className="absolute w-40 h-40 rounded-full border-2 border-white/30 animate-ping opacity-20 pointer-events-none" />
+                <div className="absolute w-28 h-28 rounded-full border border-pink-400/40 animate-pulse opacity-30 pointer-events-none" />
 
                 {/* Bubbles */}
                 <div
@@ -2374,12 +2386,12 @@ export default function App() {
                 {/* Radar pill */}
                 <div className="relative z-10 px-4 py-2 rounded-2xl apple-glow-btn text-white shadow-xl flex items-center space-x-2.5 border border-white/40">
                   <span className="text-base">📡</span>
-                  <div className="text-left">
+                  <div className="text-center flex-1">
                     <div className="text-[11px] font-black leading-tight">
                       Radar Săn Deal Đáy
                     </div>
                     <div className="text-[9px] text-white/90">
-                      Quét 24/7 (Tối đa 2 món)
+                      Quét 24/7
                     </div>
                   </div>
                   <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
@@ -2457,12 +2469,12 @@ export default function App() {
                   <div>
                     <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-amber-300">Săn Deal Siêu Tốc</h3>
                     <p className="text-[9px] opacity-75 font-semibold text-pink-500">
-                      Tối đa 2 ô {slot2BubbleUnlocked ? "(Đã mở khóa)" : "(Chạm 10 bóng để mở Ô #2)"}
+                      Tối đa {Math.max(slot2BubbleUnlocked ? 2 : 1, maxSlots)} ô {slot2BubbleUnlocked ? "(Đã mở khóa)" : "(Chạm 10 bóng để mở Ô #2)"}
                     </p>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-[9px] font-bold">
                     {activeCount}/
-                    {Math.min(slot2BubbleUnlocked ? 2 : 1, maxSlots)} ô
+                    {Math.max(slot2BubbleUnlocked ? 2 : 1, maxSlots)} ô
                   </span>
                 </div>
 

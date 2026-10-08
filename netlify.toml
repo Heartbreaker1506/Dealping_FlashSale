@@ -1,0 +1,4 @@
+[build]
+  base = "Dealping_Frontend"
+  command = "npm run build"
+  publish = "dist"
