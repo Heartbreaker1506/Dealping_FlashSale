@@ -4,7 +4,8 @@
   "description": "Root package to run both frontend and backend",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix Dealping_Backend\" \"npm run dev --prefix Dealping_Frontend\"",
-    "install:all": "npm install && npm install --prefix Dealping_Backend && npm install --prefix Dealping_Frontend"
+    "install:all": "npm install && npm install --prefix Dealping_Backend && npm install --prefix Dealping_Frontend",
+    "build": "npm install --prefix Dealping_Frontend && npm run build --prefix Dealping_Frontend && cp -r Dealping_Frontend/dist ./"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
