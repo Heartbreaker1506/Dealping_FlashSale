@@ -59,6 +59,7 @@ model TrackingItem {
   selectedModelId BigInt?  @map("selected_model_id")
   variantName     String?  @map("variant_name")
 
+  lastCheckedAt DateTime?  @default(now()) @map("last_checked_at")
   createdAt     DateTime   @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

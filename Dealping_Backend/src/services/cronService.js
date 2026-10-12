@@ -17,27 +17,46 @@ function chunkArray(array, size) {
 }
 
 /**
- * Xử lý khi có giá mới
+ * Xử lý khi có giá mới hoặc khi bot rà soát giá xong
  */
 async function processPriceUpdate(item, currentPrice) {
-  if (!currentPrice || currentPrice <= 0) return;
+  const now = new Date();
+  const hasValidPrice = Boolean(currentPrice && currentPrice > 0);
+  const isTargetHit = Boolean(hasValidPrice && currentPrice <= item.targetPrice.toNumber());
 
-  // Lưu vào lịch sử giá
-  await prisma.priceHistory.create({
-    data: {
-      trackingItemId: item.id,
-      price: currentPrice,
-    },
-  });
-
-  // So sánh giá với targetPrice
-  if (currentPrice <= item.targetPrice.toNumber()) {
+  try {
+    // Luôn cập nhật lastCheckedAt để chứng minh bot vừa quét thật
     await prisma.trackingItem.update({
       where: { id: item.id },
-      data: { status: "TARGET_HIT" },
+      data: {
+        lastCheckedAt: now,
+        ...(isTargetHit ? { status: "TARGET_HIT" } : {}),
+        ...(hasValidPrice && !item.originalPrice ? { originalPrice: currentPrice } : {}),
+      },
     });
+  } catch (err) {
+    console.error(`[CRON] Lỗi cập nhật lastCheckedAt cho item ${item.id}:`, err.message);
+  }
+
+  if (!hasValidPrice) return;
+
+  // Lưu vào lịch sử giá
+  try {
+    await prisma.priceHistory.create({
+      data: {
+        trackingItemId: item.id,
+        price: currentPrice,
+        timestamp: now,
+      },
+    });
+  } catch (err) {
+    console.error(`[CRON] Lỗi lưu priceHistory cho item ${item.id}:`, err.message);
+  }
+
+  // So sánh giá với targetPrice
+  if (isTargetHit) {
     console.log(
-      `[CRON] TING TING SẬP GIÁ: Sản phẩm ${
+      `[CRON] 🎯 TING TING SẬP GIÁ: Sản phẩm ${
         item.productName || item.id
       } đã đạt giá mục tiêu (${currentPrice} <= ${item.targetPrice.toNumber()})!`
     );
@@ -60,8 +79,103 @@ async function processPriceUpdate(item, currentPrice) {
     }
   } else {
     console.log(
-      `[CRON] Sản phẩm ${item.productName || item.id} giá hiện tại: ${currentPrice}, chưa đạt mục tiêu (${item.targetPrice.toNumber()}).`
+      `[CRON] 🔍 [Rình giá] Sản phẩm ${item.productName || item.id} giá: ${currentPrice}đ (Mục tiêu: ${item.targetPrice.toNumber()}đ). lastCheckedAt đã cập nhật.`
     );
+  }
+}
+
+// Khóa chống quét chồng lấn (concurrency guard)
+let isScanning = false;
+
+/**
+ * Hàm thực hiện 1 chu kỳ quét toàn bộ sản phẩm đang TRACKING
+ */
+async function runPriceCheckBot() {
+  if (isScanning) {
+    console.log("[CRON] Tiến trình quét giá trước đó vẫn đang chạy, bỏ qua chu kỳ này...");
+    return;
+  }
+  isScanning = true;
+  const startTime = Date.now();
+  console.log(`[CRON] [${new Date().toISOString()}] Bắt đầu chu kỳ rà soát giá tự động...`);
+
+  try {
+    const trackingItems = await prisma.trackingItem.findMany({
+      where: { status: "TRACKING" },
+      include: { user: true },
+    });
+
+    if (trackingItems.length === 0) {
+      console.log("[CRON] Không có sản phẩm nào đang ở trạng thái TRACKING.");
+      return;
+    }
+
+    console.log(`[CRON] Đang rà soát ${trackingItems.length} sản phẩm theo dõi...`);
+
+    // Phân tách Shopee và các nền tảng khác
+    const shopeeItems = trackingItems.filter(item => item.platform === "SHOPEE" && item.itemId != null);
+    const otherItems = trackingItems.filter(item => item.platform !== "SHOPEE" || item.itemId == null);
+
+    // 1. Xử lý Shopee qua Batch API
+    const shopeeChunks = chunkArray(shopeeItems, 100);
+    for (const chunk of shopeeChunks) {
+      const itemIds = chunk.map(i => i.itemId.toString());
+      try {
+        const batchResults = await shopeePriceService.fetchBatchPrices(itemIds);
+        for (const item of chunk) {
+          const itemIdStr = item.itemId.toString();
+          const itemData = batchResults[itemIdStr];
+          let currentPrice = itemData ? itemData.price : null;
+
+          if (itemData && item.selectedModelId && itemData.variants && itemData.variants.length > 0) {
+            const selectedVariant = itemData.variants.find(
+              v => v.modelId && v.modelId.toString() === item.selectedModelId.toString()
+            );
+            if (selectedVariant && selectedVariant.price > 0) {
+              currentPrice = selectedVariant.price;
+            }
+          }
+
+          await processPriceUpdate(item, currentPrice);
+        }
+      } catch (e) {
+        console.error("[CRON] Lỗi khi gọi Shopee Batch API:", e.message);
+        // Vẫn cập nhật lastCheckedAt cho chunk để dữ liệu luôn mới
+        for (const item of chunk) {
+          await processPriceUpdate(item, null);
+        }
+      }
+    }
+
+    // 2. Xử lý TikTok và Lazada
+    for (const item of otherItems) {
+      let currentPrice = null;
+      try {
+        const url = item.productUrl;
+
+        if (item.platform === "SHOPEE") {
+          const shopeeInfo = await shopeePriceService.fetchCurrentPrice(null, null, url);
+          currentPrice = shopeeInfo ? shopeeInfo.price : null;
+        } else if (item.platform === "TIKTOK") {
+          const tiktokInfo = await tiktokPriceService.fetchCurrentPrice(url);
+          currentPrice = tiktokInfo ? tiktokInfo.price : null;
+        } else if (item.platform === "LAZADA") {
+          const lazadaInfo = await lazadaPriceService.fetchCurrentPrice(url);
+          currentPrice = lazadaInfo ? lazadaInfo.price : null;
+        }
+      } catch (error) {
+        console.error(`[CRON] Lỗi khi quét giá cho sản phẩm ${item.id}:`, error.message);
+      }
+
+      await processPriceUpdate(item, currentPrice);
+    }
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`[CRON] Hoàn thành chu kỳ rà soát giá trong ${elapsed}s.`);
+  } catch (err) {
+    console.error("[CRON] Lỗi chung khi chạy cron job quét giá:", err);
+  } finally {
+    isScanning = false;
   }
 }
 
@@ -69,79 +183,17 @@ async function processPriceUpdate(item, currentPrice) {
  * Bắt đầu các cron jobs để lấy giá tự động.
  */
 function startCronJobs() {
-  // Chạy mỗi 30 phút quét giá tự động các sản phẩm đang theo dõi
-  cron.schedule("*/30 * * * *", async () => {
-    console.log("[CRON] Bắt đầu quét giá các sản phẩm đang TRACKING...");
-    try {
-      const trackingItems = await prisma.trackingItem.findMany({
-        where: { status: "TRACKING" },
-        include: { user: true },
-      });
+  // Chu kỳ quét tối ưu: Mặc định mỗi 2 phút (hoặc cấu hình qua biến môi trường CRON_SCHEDULE)
+  const cronSchedule = process.env.CRON_SCHEDULE || "*/2 * * * *";
 
-      // Phân tách Shopee và các nền tảng khác
-      const shopeeItems = trackingItems.filter(item => item.platform === "SHOPEE" && item.itemId != null);
-      const otherItems = trackingItems.filter(item => item.platform !== "SHOPEE" || item.itemId == null);
+  cron.schedule(cronSchedule, runPriceCheckBot);
+  console.log(`[CRON] Đã thiết lập cron job quét giá tự động (${cronSchedule}).`);
 
-      // 1. Xử lý Shopee qua Batch API
-      const shopeeChunks = chunkArray(shopeeItems, 100);
-      for (const chunk of shopeeChunks) {
-        const itemIds = chunk.map(i => i.itemId.toString());
-        try {
-          const batchResults = await shopeePriceService.fetchBatchPrices(itemIds);
-          for (const item of chunk) {
-            const itemIdStr = item.itemId.toString();
-            if (batchResults[itemIdStr]) {
-               const itemData = batchResults[itemIdStr];
-               let currentPrice = itemData.price;
-               
-               if (item.selectedModelId && itemData.variants && itemData.variants.length > 0) {
-                 const selectedVariant = itemData.variants.find(
-                   v => v.modelId && v.modelId.toString() === item.selectedModelId.toString()
-                 );
-                 if (selectedVariant && selectedVariant.price > 0) {
-                   currentPrice = selectedVariant.price;
-                 }
-               }
-               
-               await processPriceUpdate(item, currentPrice);
-            }
-          }
-        } catch (e) {
-          console.error("[CRON] Lỗi khi gọi Shopee Batch API:", e.message);
-        }
-      }
-
-      // 2. Xử lý TikTok và Lazada (như cũ)
-      for (const item of otherItems) {
-        try {
-          let currentPrice = null;
-          const url = item.productUrl; 
-
-          if (item.platform === "SHOPEE") {
-             // Trường hợp không có itemId thì dùng hàm cũ (thực tế rất hiếm)
-             const shopeeInfo = await shopeePriceService.fetchCurrentPrice(null, null, url);
-             currentPrice = shopeeInfo.price;
-          } else if (item.platform === "TIKTOK") {
-            const tiktokInfo = await tiktokPriceService.fetchCurrentPrice(url);
-            currentPrice = tiktokInfo.price;
-          } else if (item.platform === "LAZADA") {
-            const lazadaInfo = await lazadaPriceService.fetchCurrentPrice(url);
-            currentPrice = lazadaInfo.price;
-          }
-
-          await processPriceUpdate(item, currentPrice);
-        } catch (error) {
-          console.error(`[CRON] Lỗi khi quét giá cho sản phẩm ${item.id}:`, error.message);
-        }
-      }
-      
-      console.log("[CRON] Hoàn thành quét giá.");
-    } catch (err) {
-      console.error("[CRON] Lỗi chung khi chạy cron job quét giá:", err);
-    }
-  });
-
-  console.log("[CRON] Đã thiết lập cron job quét giá mỗi 30 phút.");
+  // Kích hoạt 1 lượt quét ngay khi server khởi động (delay 3s để hoàn tất khởi động)
+  setTimeout(() => {
+    console.log("[CRON] Chạy lượt quét khởi động ban đầu để làm mới lastCheckedAt...");
+    runPriceCheckBot().catch(err => console.error("[CRON] Lỗi quét khởi động:", err));
+  }, 3000);
 }
 
-module.exports = { startCronJobs };
+module.exports = { startCronJobs, runPriceCheckBot };

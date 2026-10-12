@@ -65,7 +65,7 @@ async function createTrackingItem({
   });
   
   if (existing) {
-    const updateData = { targetPrice, variantName };
+    const updateData = { targetPrice, variantName, lastCheckedAt: new Date() };
     if (inputImageUrl) {
       updateData.imageUrl = inputImageUrl;
     }
@@ -139,6 +139,7 @@ async function createTrackingItem({
       status: "TRACKING",
       variantName,
       selectedModelId: selectedModelId ? BigInt(selectedModelId) : null,
+      lastCheckedAt: new Date(),
     },
   });
 
@@ -166,12 +167,60 @@ async function deleteTrackingItem(id, userId) {
   await prisma.trackingItem.delete({ where: { id } });
 }
 
+function formatTimeAgo(date) {
+  if (!date) return "Vừa xong";
+  const now = new Date();
+  const past = new Date(date);
+  const diffMs = now.getTime() - past.getTime();
+
+  if (isNaN(diffMs) || diffMs < 30 * 1000) {
+    return "Vừa xong";
+  }
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffMin < 1) return "Vừa xong";
+  if (diffMin < 60) return `${diffMin} phút trước`;
+  if (diffHour < 24) return `${diffHour} giờ trước`;
+  if (diffDay < 30) return `${diffDay} ngày trước`;
+  return `${Math.floor(diffDay / 30)} tháng trước`;
+}
+
 function serializeItem(item) {
+  const lastCheckedAtDate = item.lastCheckedAt || item.createdAt || new Date();
+  const lastCheckedAgo = formatTimeAgo(lastCheckedAtDate);
+
+  // Trạng thái theo dõi và lời khuyên rà soát giá
+  let displayStatus = "monitoring";
+  let statusLabel = "Đang rình giá";
+  let advice = "Giá vẫn neo cao, khuyên chưa nên mua vội";
+
+  if (item.status === "TARGET_HIT") {
+    displayStatus = "target_hit";
+    statusLabel = "Đã sập giá";
+    advice = "Giá đã chạm đáy mục tiêu, nên mua ngay kẻo lỡ!";
+  } else if (item.status === "PAUSED") {
+    displayStatus = "paused";
+    statusLabel = "Tạm dừng";
+    advice = "Đang tạm dừng theo dõi sản phẩm này";
+  }
+
   return {
     ...item,
     itemId: item.itemId?.toString() ?? null,
     shopId: item.shopId?.toString() ?? null,
     selectedModelId: item.selectedModelId?.toString() ?? null,
+    rawStatus: item.status,
+    status: displayStatus,
+    statusLabel,
+    statusText: statusLabel,
+    advice,
+    recommendation: advice,
+    lastCheckedAt: lastCheckedAtDate instanceof Date ? lastCheckedAtDate.toISOString() : new Date(lastCheckedAtDate).toISOString(),
+    lastCheckedAgo,
+    lastCheckedText: lastCheckedAgo,
   };
 }
 
@@ -244,6 +293,15 @@ async function listBatchTrackingItems(userId) {
         serialized.livePrice = livePrice;
         serialized.liveProductName = liveData.productName;
         serialized.liveImageUrl = liveData.imageUrl;
+        serialized.lastCheckedAt = new Date().toISOString();
+        serialized.lastCheckedAgo = "Vừa xong";
+        serialized.lastCheckedText = "Vừa xong";
+
+        // Cập nhật ngầm timestamp quét giá mới nhất vào database
+        prisma.trackingItem.update({
+          where: { id: item.id },
+          data: { lastCheckedAt: new Date() }
+        }).catch(() => {});
       }
     }
     
@@ -327,4 +385,6 @@ module.exports = {
   previewTrackingItem,
   getTrackingItemChartHistory,
   listBatchTrackingItems,
+  serializeItem,
+  formatTimeAgo,
 };

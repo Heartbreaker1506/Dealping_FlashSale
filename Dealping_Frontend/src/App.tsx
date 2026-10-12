@@ -5,7 +5,7 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react"
-import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { AreaChart, Area, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { Tag, Zap, Flame, Shirt, Headphones, Sparkles, Gift, ShoppingBag, ShoppingCart, Watch, Smartphone, Monitor, Heart, TrendingUp, User, Radio } from "lucide-react"
 
 type View = "onboarding" | "welcome" | "main" | "wishlist" | "price_chart" | "account"
@@ -675,6 +675,10 @@ function OrderDetailModal({
     variant?: string
     url?: string
     affiliateUrl?: string | null
+    status?: string
+    statusLabel?: string
+    lastCheckedText?: string
+    advice?: string
   } | null
   onOpenStore: () => void
   onTriggerAlarm: () => void
@@ -837,8 +841,19 @@ function OrderDetailModal({
           {/* Tracking Status details */}
           <div className="bg-black/30 rounded-2xl p-2.5 border border-white/10 space-y-1.5 text-[10px]">
             <div className="flex justify-between items-center">
+              <span className="opacity-70">Trạng thái rà soát:</span>
+              <span className="font-bold text-amber-300 inline-flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>{data.statusLabel || "Đang rình giá"}</span>
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="opacity-70">Lần quét gần nhất:</span>
+              <span className="font-bold text-emerald-400">🕒 {data.lastCheckedText || "Vừa xong"}</span>
+            </div>
+            <div className="flex justify-between items-center">
               <span className="opacity-70">Tần suất quét Radar:</span>
-              <span className="font-bold text-purple-300">⚡ Mỗi 15 - 30 giây</span>
+              <span className="font-bold text-purple-300">⚡ Tự động 24/7 (mỗi 2 phút)</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="opacity-70">Kênh thông báo:</span>
@@ -848,6 +863,17 @@ function OrderDetailModal({
               <span className="opacity-70">Mã đơn theo dõi:</span>
               <span className="font-mono font-bold text-slate-300">{trackingCode}</span>
             </div>
+          </div>
+
+          {/* Lời khuyên của bot */}
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-2.5 text-[10px] space-y-1">
+            <span className="font-extrabold text-amber-300 uppercase flex items-center space-x-1">
+              <span>💡</span>
+              <span>Lời khuyên Dealping Bot</span>
+            </span>
+            <p className="text-white/80 italic">
+              "{data.advice || "Giá vẫn neo cao, khuyên chưa nên mua vội"}"
+            </p>
           </div>
         </div>
 
@@ -924,6 +950,9 @@ function SlotCard({
   productImage,
   affiliateUrl,
   priceHistory,
+  statusLabel,
+  lastCheckedText,
+  advice,
 }: {
   slotNum: number
   label: string
@@ -957,6 +986,9 @@ function SlotCard({
   productImage?: string | null
   affiliateUrl?: string | null
   priceHistory?: { labels: string[], price: number[] }
+  statusLabel?: string
+  lastCheckedText?: string
+  advice?: string
 }) {
   const isSlot1 = slotNum === 1
   const borderClass = isSlot1
@@ -1196,6 +1228,15 @@ function SlotCard({
               <p className="text-[9px] opacity-70 truncate">
                 {productPrice} | <b className={accentActive}>{variant}</b>
               </p>
+              <div className="flex items-center space-x-1.5 mt-0.5">
+                <span className="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                  <span>{statusLabel || "Đang rình giá"}</span>
+                </span>
+                <span className="text-[8px] text-white/50">
+                  • {lastCheckedText || "Vừa xong"}
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-1 shrink-0">
@@ -1223,6 +1264,12 @@ function SlotCard({
               🗑️ Đổi
             </button>
           </div>
+          </div>
+
+          {/* Bot Advice Banner */}
+          <div className="mt-2 bg-black/20 rounded-xl px-2.5 py-1.5 border border-white/5 flex items-center space-x-1.5 text-[9px] text-yellow-200/90">
+            <span>💡</span>
+            <span className="truncate italic">{advice || "Giá vẫn neo cao, khuyên chưa nên mua vội"}</span>
           </div>
           
           {/* Price Badges & Chart */}
@@ -1378,6 +1425,9 @@ export default function App() {
   const [slot1AffiliateUrl, setSlot1AffiliateUrl] = useState<string | null>(null)
   const [slot1PreviewLoading, setSlot1PreviewLoading] = useState(false)
   const [slot1Sending, setSlot1Sending] = useState(false)
+  const [slot1LastChecked, setSlot1LastChecked] = useState<string>("5 phút trước")
+  const [slot1Status, setSlot1Status] = useState<string>("Đang rình giá")
+  const [slot1Advice, setSlot1Advice] = useState<string>("Giá vẫn neo cao, khuyên chưa nên mua vội")
   const [showBumpSheet, setShowBumpSheet] = useState(false)
 
   // Slot 2 (bubble mini-game unlock)
@@ -1399,6 +1449,9 @@ export default function App() {
   const [slot2AffiliateUrl, setSlot2AffiliateUrl] = useState<string | null>(null)
   const [slot2PreviewLoading, setSlot2PreviewLoading] = useState(false)
   const [slot2Sending, setSlot2Sending] = useState(false)
+  const [slot2LastChecked, setSlot2LastChecked] = useState<string>("5 phút trước")
+  const [slot2Status, setSlot2Status] = useState<string>("Đang rình giá")
+  const [slot2Advice, setSlot2Advice] = useState<string>("Giá vẫn neo cao, khuyên chưa nên mua vội")
 
   // Track which slot was last interacted with for alarm & calculations
   const [lastActiveSlot, setLastActiveSlot] = useState<number>(1)
@@ -1882,6 +1935,9 @@ export default function App() {
             if (items[0].originalPrice) setSlot1BasePrice(Number(items[0].originalPrice))
             if (items[0].variantName) setSlot1Variant(items[0].variantName)
             if (items[0].imageUrl) setSlot1ImageUrl(items[0].imageUrl)
+            if (items[0].lastCheckedAgo || items[0].lastCheckedText) setSlot1LastChecked(items[0].lastCheckedAgo || items[0].lastCheckedText)
+            if (items[0].statusLabel) setSlot1Status(items[0].statusLabel)
+            if (items[0].advice) setSlot1Advice(items[0].advice)
             setSlot1Active(true)
           }
           if (items[1]) {
@@ -1892,6 +1948,9 @@ export default function App() {
             if (items[1].originalPrice) setSlot2BasePrice(Number(items[1].originalPrice))
             if (items[1].variantName) setSlot2Variant(items[1].variantName)
             if (items[1].imageUrl) setSlot2ImageUrl(items[1].imageUrl)
+            if (items[1].lastCheckedAgo || items[1].lastCheckedText) setSlot2LastChecked(items[1].lastCheckedAgo || items[1].lastCheckedText)
+            if (items[1].statusLabel) setSlot2Status(items[1].statusLabel)
+            if (items[1].advice) setSlot2Advice(items[1].advice)
             setSlot2BubbleUnlocked(true)
             setSlot2Active(true)
           }
@@ -2534,6 +2593,9 @@ export default function App() {
                       previewImage={slot2ImageUrl}
                       productImage={slot2ImageUrl}
                       affiliateUrl={slot2AffiliateUrl}
+                      statusLabel={slot2Status}
+                      lastCheckedText={slot2LastChecked}
+                      advice={slot2Advice}
                       onViewDetails={() => setDetailModalSlot(2)}
                       onInputChange={(v) => {
                         setLastActiveSlot(2)
@@ -2597,6 +2659,9 @@ export default function App() {
                           const resolvedName = result?.data?.productName || result?.productName || slot2PreviewName || "Món 2 đang theo dõi"
                           setSlot2ProductName(resolvedName)
                           setSlot2ProductPrice(slot2TargetPrice)
+                          if (result?.data?.lastCheckedAgo || result?.data?.lastCheckedText) setSlot2LastChecked(result.data.lastCheckedAgo || result.data.lastCheckedText)
+                          if (result?.data?.statusLabel) setSlot2Status(result.data.statusLabel)
+                          if (result?.data?.advice) setSlot2Advice(result.data.advice)
 
                           setSlot2Active(true)
 
@@ -2664,6 +2729,9 @@ export default function App() {
                       previewImage={slot1ImageUrl}
                       productImage={slot1ImageUrl}
                       affiliateUrl={slot1AffiliateUrl}
+                      statusLabel={slot1Status}
+                      lastCheckedText={slot1LastChecked}
+                      advice={slot1Advice}
                       onViewDetails={() => setDetailModalSlot(1)}
                       onInputChange={(v) => {
                         setLastActiveSlot(1)
@@ -2728,6 +2796,9 @@ export default function App() {
                           const resolvedName = result?.data?.productName || result?.productName || slot1PreviewName || "Món 1 đang theo dõi"
                           setSlot1ProductName(resolvedName)
                           setSlot1ProductPrice(slot1TargetPrice)
+                          if (result?.data?.lastCheckedAgo || result?.data?.lastCheckedText) setSlot1LastChecked(result.data.lastCheckedAgo || result.data.lastCheckedText)
+                          if (result?.data?.statusLabel) setSlot1Status(result.data.statusLabel)
+                          if (result?.data?.advice) setSlot1Advice(result.data.advice)
 
                           setShowBumpSheet(true)
                         } catch (error) {
@@ -2975,6 +3046,10 @@ export default function App() {
                       variant: slot2Variant,
                       url: slot2Input,
                       affiliateUrl: slot2AffiliateUrl,
+                      status: "monitoring",
+                      statusLabel: slot2Status,
+                      lastCheckedText: slot2LastChecked,
+                      advice: slot2Advice,
                     }
                   : {
                       slotNum: 1,
@@ -2988,6 +3063,10 @@ export default function App() {
                       variant: slot1Variant,
                       url: slot1Input,
                       affiliateUrl: slot1AffiliateUrl,
+                      status: "monitoring",
+                      statusLabel: slot1Status,
+                      lastCheckedText: slot1LastChecked,
+                      advice: slot1Advice,
                     }
               }
               onOpenStore={() => {
@@ -3223,23 +3302,47 @@ export default function App() {
                   </div>
                 ) : (
                   wishlistItems.map((item, idx) => {
+                    const isHit = item.status === "target_hit" || item.rawStatus === "TARGET_HIT";
                     return (
                     <div 
                       key={item.id || idx} 
-                      className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center space-x-3 transition-colors hover:bg-white/10"
+                      className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-2 transition-colors hover:bg-white/10"
                     >
-                      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/20 flex items-center justify-center">
-                        {item.imageUrl || item.productImage ? (
-                          <img src={item.imageUrl || item.productImage} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
-                        ) : (
-                          <span className="text-lg">🛍️</span>
-                        )}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/20 flex items-center justify-center border border-white/10">
+                          {item.imageUrl || item.productImage ? (
+                            <img src={item.imageUrl || item.productImage} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
+                          ) : (
+                            <span className="text-lg">🛍️</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[8px] font-bold border ${
+                              isHit 
+                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse" 
+                                : "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${isHit ? "bg-emerald-400" : "bg-amber-400 animate-ping"}`}></span>
+                              <span>{item.statusLabel || (isHit ? "Đã sập giá" : "Đang rình giá")}</span>
+                            </span>
+                            <span className="text-[9px] text-white/50 shrink-0 font-medium">
+                              🕒 {item.lastCheckedAgo || item.lastCheckedText || "Vừa xong"}
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-white truncate">{item.productName || "Sản phẩm đang theo dõi"}</h4>
+                          <p className="text-[10px] text-emerald-400 font-semibold truncate mt-0.5">
+                            Mục tiêu: {formatVND(item.targetPrice)} {item.variantName ? `| ${item.variantName}` : ""}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-bold text-white truncate">{item.productName || "Sản phẩm đang theo dõi"}</h4>
-                        <p className="text-[10px] text-emerald-400 font-semibold truncate mt-1">
-                          Mục tiêu: {formatVND(item.targetPrice)} {item.variantName ? `| ${item.variantName}` : ""}
-                        </p>
+
+                      {/* Lời khuyên rà soát giá của Bot */}
+                      <div className="bg-black/25 px-2.5 py-1.5 rounded-xl border border-white/5 flex items-center space-x-1.5 text-[9px]">
+                        <span>💡</span>
+                        <span className={`${isHit ? "text-emerald-300 font-bold" : "text-yellow-200/90"} italic truncate`}>
+                          {item.advice || (isHit ? "Giá đã chạm đáy mục tiêu! Mua ngay kẻo lỡ!" : "Giá vẫn neo cao, khuyên chưa nên mua vội")}
+                        </span>
                       </div>
                     </div>
                   )})
