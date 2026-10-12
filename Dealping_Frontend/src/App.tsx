@@ -786,7 +786,7 @@ function OrderDetailModal({
             <div className="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center justify-between">
               <span>💰 Thông Tin Giá Săn Deal</span>
               <span className="px-1.5 py-0.5 rounded bg-pink-500/30 text-pink-300 text-[9px] font-bold">
-                Giảm -{discountPct}%
+                {discountPct <= 15 ? "⚡ Nấc 1: Giảm nhẹ 10%" : `🔥 Nấc 2: Mua Chậm Giá Hời (-${discountPct}%)`}
               </span>
             </div>
 
@@ -818,6 +818,13 @@ function OrderDetailModal({
                 </span>
               </div>
 
+              {discountPct >= 20 && (
+                <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-300 flex items-center space-x-1">
+                  <span>👉</span>
+                  <span>Dự kiến chờ 2 - 4 ngày để rình đợt Sale lớn</span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center text-emerald-400 text-[10px] font-semibold pt-0.5">
                 <span>⚡ Ước tính tiết kiệm:</span>
                 <span className="font-bold">
@@ -831,6 +838,25 @@ function OrderDetailModal({
                   +{formatVND(cashbackBonus)}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Nhịp tim Radar & Thông điệp Mua Chậm Giá Hời */}
+          <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-2.5 space-y-1.5 shadow-sm">
+            <div className="flex items-center space-x-2 text-[10px] font-semibold text-emerald-400">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+              </span>
+              <span className="truncate">
+                Radar vừa quét giá 10 phút trước — Giá chưa giảm, kiên nhẫn đợi giá đáy!
+              </span>
+            </div>
+            <div className="flex items-start space-x-1.5 text-[8.5px] text-white/75 pt-1 border-t border-emerald-500/20">
+              <span className="shrink-0 text-[10px]">🛡️</span>
+              <span className="leading-tight">
+                <b className="text-purple-300 font-bold">Khi bot im lặng</b> = Tiền bạn an toàn trong túi. <span className="text-pink-300 font-bold">Mua chậm một nhịp, tiết kiệm một nửa!</span>
+              </span>
             </div>
           </div>
 
@@ -963,9 +989,18 @@ function SlotCard({
     ? "border-purple-400/30"
     : "border-pink-500/70 border-2 bg-gradient-to-b from-pink-500/15 to-purple-500/10"
 
-  const discountPct = basePrice && basePrice > 0
-    ? Math.max(0, Math.round((1 - parseVND(targetPrice || "") / basePrice) * 100))
+  const effectiveBasePrice = (basePrice && basePrice > 0)
+    ? basePrice
+    : (voucherPrice && voucherPrice > 0 ? voucherPrice : parseVND(previewPrice || ""))
+
+  const discountPct = effectiveBasePrice > 0
+    ? Math.max(0, Math.round((1 - parseVND(targetPrice || "") / effectiveBasePrice) * 100))
     : (isSlot1 ? 20 : 30)
+
+  const tier1Target = effectiveBasePrice > 0 ? Math.round((effectiveBasePrice * 0.90) / 1000) * 1000 : null
+  const tier2Target = effectiveBasePrice > 0 ? Math.round((effectiveBasePrice * 0.72) / 1000) * 1000 : null
+  const isTier1Active = discountPct >= 8 && discountPct <= 15
+  const isTier2Active = discountPct >= 20 && discountPct <= 35
 
   const history = priceHistory
 
@@ -1061,31 +1096,123 @@ function SlotCard({
                   </div>
                 </div>
               )}
-              <div className="bg-black/5 rounded-[18px] p-2.5 text-[10px]">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold opacity-80">
-                    Giá mong muốn món {slotNum}:
+              <div className="bg-black/5 rounded-[18px] p-2.5 text-[10px] space-y-2">
+                <div className="flex justify-between items-center mb-0.5">
+                  <span className="font-bold opacity-80 text-[10px]">
+                    🎯 Chọn nấc giảm giá món {slotNum}:
                   </span>
                   <span
-                    className={`font-bold ${isSlot1 ? "text-purple-400" : "text-pink-400"
+                    className={`font-black text-[10px] ${isSlot1 ? "text-purple-400" : "text-pink-400"
                       }`}
                   >
                     Giảm -{discountPct}%
                   </span>
                 </div>
-                <div className="relative mb-1.5 flex items-center">
-                  <input
-                    type="text"
-                    value={targetPrice ?? ""}
-                    onChange={(e) =>
-                      onTargetPriceChange?.(
-                        formatInputNumber(e.target.value)
-                      )
-                    }
-                    placeholder="Nhập giá mong muốn"
-                    className="w-full bg-black/10 text-current text-xs font-bold rounded-lg pl-2.5 pr-7 py-1.5 border border-current/20 focus:outline-none"
-                  />
-                  <span className="absolute right-2.5 text-xs font-bold opacity-60 pointer-events-none">đ</span>
+
+                {/* Chia 2 nấc chọn giảm giá */}
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Nấc 1: Giảm nhẹ 10% (Cho ai cần mua gấp) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (tier1Target) {
+                        onTargetPriceChange?.(formatInputNumber(tier1Target))
+                      }
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
+                      isTier1Active
+                        ? "bg-amber-500/20 border-amber-400/80 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)] ring-1 ring-amber-400/50"
+                        : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[10px] font-black flex items-center space-x-1">
+                        <span>⚡</span>
+                        <span>Nấc 1: -10%</span>
+                      </span>
+                      {isTier1Active && (
+                        <span className="text-[8px] bg-amber-400/30 text-amber-200 px-1 rounded font-bold">
+                          ✓ Chọn
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[8.5px] text-white/60 mt-1 leading-tight">
+                      Giảm nhẹ 10%<br />
+                      <span className="text-amber-300/90 font-medium">(Cho ai cần mua gấp)</span>
+                    </p>
+                    {tier1Target && (
+                      <span className="text-[9px] font-bold text-amber-300 mt-1">
+                        ~ {formatVND(tier1Target)}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Nấc 2: Chế độ "Mua Chậm Giá Hời" (-25% đến -30%) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (tier2Target) {
+                        onTargetPriceChange?.(formatInputNumber(tier2Target))
+                      }
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
+                      isTier2Active
+                        ? "bg-emerald-500/25 border-emerald-400/90 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400/60"
+                        : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[10px] font-black text-emerald-300 flex items-center space-x-1">
+                        <span>🔥</span>
+                        <span>Nấc 2: -25% ~ -30%</span>
+                      </span>
+                      {isTier2Active && (
+                        <span className="text-[8px] bg-emerald-400/30 text-emerald-200 px-1 rounded font-bold">
+                          ⭐ Gợi ý
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[8.5px] font-bold text-emerald-200 mt-1 leading-tight">
+                      Chế độ "Mua Chậm Giá Hời"
+                    </p>
+                    {tier2Target && (
+                      <span className="text-[9px] font-black text-emerald-300 mt-1">
+                        ~ {formatVND(tier2Target)}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Ghi chú Nấc 2: Dự kiến chờ 2 - 4 ngày để rình đợt Sale lớn */}
+                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-300 flex items-start space-x-1.5">
+                  <span className="text-[11px] shrink-0">👉</span>
+                  <span className="leading-tight font-medium">
+                    <b>Dự kiến chờ 2 - 4 ngày để rình đợt Sale lớn</b> (Chế độ "Mua Chậm Giá Hời").
+                  </span>
+                </div>
+
+                {/* Tinh chỉnh giá mong muốn */}
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[9px] text-white/60">
+                    <span>Hoặc tinh chỉnh số tiền cụ thể:</span>
+                    {effectiveBasePrice > 0 && (
+                      <span>Giá sàn: {formatVND(effectiveBasePrice)}</span>
+                    )}
+                  </div>
+                  <div className="relative mb-1.5 flex items-center">
+                    <input
+                      type="text"
+                      value={targetPrice ?? ""}
+                      onChange={(e) =>
+                        onTargetPriceChange?.(
+                          formatInputNumber(e.target.value)
+                        )
+                      }
+                      placeholder="Nhập giá mong muốn"
+                      className="w-full bg-black/10 text-current text-xs font-bold rounded-lg pl-2.5 pr-7 py-1.5 border border-current/20 focus:outline-none"
+                    />
+                    <span className="absolute right-2.5 text-xs font-bold opacity-60 pointer-events-none">đ</span>
+                  </div>
                 </div>
                 <div className="pt-1.5 border-t border-current/10">
                   <div className="flex justify-between items-center mb-1">
@@ -1223,6 +1350,28 @@ function SlotCard({
               🗑️ Đổi
             </button>
           </div>
+          </div>
+          
+          {/* Nhịp tim Radar & Thông điệp Mua Chậm Giá Hời ngay dưới thẻ món hàng */}
+          <div className="mt-2.5 pt-2 border-t border-white/10 space-y-1.5">
+            {/* Dòng nhỏ có chấm xanh lá nhấp nháy */}
+            <div className="flex items-center space-x-2 text-[9.5px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-2.5 py-1.5 shadow-sm">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+              </span>
+              <span className="truncate">
+                Radar vừa quét giá 10 phút trước — Giá chưa giảm, kiên nhẫn đợi giá đáy!
+              </span>
+            </div>
+
+            {/* Thông điệp Mua Chậm Giá Hời */}
+            <div className="flex items-start space-x-1.5 text-[8.5px] text-white/75 bg-purple-500/10 border border-purple-500/20 rounded-xl px-2.5 py-1.5">
+              <span className="shrink-0 text-[10px]">🛡️</span>
+              <span className="leading-tight">
+                <b className="text-purple-300 font-bold">Khi bot im lặng</b> = Tiền bạn an toàn trong túi. <span className="text-pink-300 font-bold">Mua chậm một nhịp, tiết kiệm một nửa!</span>
+              </span>
+            </div>
           </div>
           
           {/* Price Badges & Chart */}
@@ -1928,8 +2077,8 @@ export default function App() {
             if (data.imageUrl) setSlot1ImageUrl(data.imageUrl)
             if (data.affiliateUrl || data.offerLink) setSlot1AffiliateUrl(data.affiliateUrl || data.offerLink)
 
-            // Tự động tính giá mong muốn Ô 1 (-22%)
-            const autoTarget = Math.round((rawPrice * 0.80) / 1000) * 1000
+            // Tự động tính giá mong muốn Ô 1 (Mặc định Nấc 2: Mua Chậm Giá Hời -28%)
+            const autoTarget = Math.round((rawPrice * 0.72) / 1000) * 1000
             setSlot1TargetPrice(formatInputNumber(autoTarget))
 
             if (data.variants && Array.isArray(data.variants)) {
@@ -1983,8 +2132,8 @@ export default function App() {
             if (data.imageUrl) setSlot2ImageUrl(data.imageUrl)
             if (data.affiliateUrl || data.offerLink) setSlot2AffiliateUrl(data.affiliateUrl || data.offerLink)
 
-            // Tự động tính giá mong muốn Ô 2 (-30%)
-            const autoTarget = Math.round((rawPrice * 0.70) / 1000) * 1000
+            // Tự động tính giá mong muốn Ô 2 (Mặc định Nấc 2: Mua Chậm Giá Hời -28%)
+            const autoTarget = Math.round((rawPrice * 0.72) / 1000) * 1000
             setSlot2TargetPrice(formatInputNumber(autoTarget))
 
             if (data.variants && Array.isArray(data.variants)) {
@@ -2080,7 +2229,7 @@ export default function App() {
     if (price) {
        setSlot1PreviewPrice(formatVND(price))
        setSlot1BasePrice(price)
-       const autoTarget = Math.round((price * 0.80) / 1000) * 1000
+       const autoTarget = Math.round((price * 0.72) / 1000) * 1000
        setSlot1TargetPrice(formatInputNumber(autoTarget))
     }
   }
@@ -2090,7 +2239,7 @@ export default function App() {
     if (price) {
        setSlot2PreviewPrice(formatVND(price))
        setSlot2BasePrice(price)
-       const autoTarget = Math.round((price * 0.80) / 1000) * 1000
+       const autoTarget = Math.round((price * 0.72) / 1000) * 1000
        setSlot2TargetPrice(formatInputNumber(autoTarget))
     }
   }
@@ -3226,20 +3375,41 @@ export default function App() {
                     return (
                     <div 
                       key={item.id || idx} 
-                      className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center space-x-3 transition-colors hover:bg-white/10"
+                      className="p-3 bg-white/5 border border-white/10 rounded-2xl flex flex-col space-y-2 transition-colors hover:bg-white/10"
                     >
-                      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/20 flex items-center justify-center">
-                        {item.imageUrl || item.productImage ? (
-                          <img src={item.imageUrl || item.productImage} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
-                        ) : (
-                          <span className="text-lg">🛍️</span>
-                        )}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/20 flex items-center justify-center">
+                          {item.imageUrl || item.productImage ? (
+                            <img src={item.imageUrl || item.productImage} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
+                          ) : (
+                            <span className="text-lg">🛍️</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-white truncate">{item.productName || "Sản phẩm đang theo dõi"}</h4>
+                          <p className="text-[10px] text-emerald-400 font-semibold truncate mt-1">
+                            Mục tiêu: {formatVND(item.targetPrice)} {item.variantName ? `| ${item.variantName}` : ""}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-bold text-white truncate">{item.productName || "Sản phẩm đang theo dõi"}</h4>
-                        <p className="text-[10px] text-emerald-400 font-semibold truncate mt-1">
-                          Mục tiêu: {formatVND(item.targetPrice)} {item.variantName ? `| ${item.variantName}` : ""}
-                        </p>
+
+                      {/* Nhịp tim Radar & Thông điệp Mua Chậm Giá Hời */}
+                      <div className="pt-2 border-t border-white/10 space-y-1">
+                        <div className="flex items-center space-x-2 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-2.5 py-1.5 shadow-sm">
+                          <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_6px_#10b981]"></span>
+                          </span>
+                          <span className="truncate">
+                            Radar vừa quét giá 10 phút trước — Giá chưa giảm, kiên nhẫn đợi giá đáy!
+                          </span>
+                        </div>
+                        <div className="flex items-start space-x-1.5 text-[8.5px] text-white/70 px-1">
+                          <span className="shrink-0 text-[9px]">🛡️</span>
+                          <span className="leading-tight">
+                            <b className="text-purple-300">Khi bot im lặng</b> = Tiền bạn an toàn trong túi. <span className="text-pink-300 font-bold">Mua chậm một nhịp, tiết kiệm một nửa!</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )})
