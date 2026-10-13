@@ -19,62 +19,130 @@
 ```markdown
 <div align="center">
 
-# Hi there, I'm Trần Võ Anh Kiệt 👋
-### 🚀 Full-Stack Developer & Tech Innovator
-
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=00E676&center=true&vCenter=true&width=500&lines=Full-Stack+Web+Developer;React+%7C+TypeScript+%7C+Node.js;Founder+at+DealPing+(EXE101);Building+Smart+E-Commerce+Tools" alt="Typing SVG" />
-</p>
-
-[![GitHub followers](https://img.shields.io/github/followers/tranvoanhkiet2607-eng?label=Followers&style=for-the-badge&color=24292e&logo=github)](https://github.com/tranvoanhkiet2607-eng)
-[![Gmail](https://img.shields.io/badge/Email-tranvoanhkiet2607%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:tranvoanhkiet2607@gmail.com)
-
-</div>
-
----
-
-### 💫 Về Tôi
-- 🔭 Đang phát triển: **[DealPing FlashSale](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)** — Hệ thống radar săn deal đáy đa sàn & cảnh báo sập giá 24/7.
-- 🎓 Sinh viên ngành Kỹ thuật Phần mềm / Đổi mới sáng tạo tại **Trường Đại học FPT**.
-- ⚡ Thế mạnh: Xây dựng ứng dụng full-stack với hiệu năng cao, trải nghiệm người dùng mượt mà và kiến trúc backend bền vững.
-
----
-
-### 🛠️ Kỹ Năng & Công Nghệ (Tech Stack)
-
-<div align="center">
-
-| Lĩnh Vực | Công Nghệ |
-| :--- | :--- |
-| **Frontend** | ![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) |
-| **Backend** | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js&logoColor=white) ![Express.js](https://img.shields.io/badge/Express.js-000000?style=flat-square&logo=express&logoColor=white) ![Prisma](https://img.shields.io/badge/Prisma_ORM-2D3748?style=flat-square&logo=prisma&logoColor=white) |
-| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white) |
-| **Mobile & PWA** | ![Capacitor](https://img.shields.io/badge/Capacitor-119EFF?style=flat-square&logo=capacitor&logoColor=white) ![Service Worker](https://img.shields.io/badge/Web_Push-000000?style=flat-square&logo=pwa&logoColor=white) |
-| **DevOps & Cloud** | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![Git](https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) |
-
-</div>
-
----
-
-### 🔥 Dự Án Nổi Bật (Featured Projects)
-
-#### 🎯 [DealPing — Flash Sale Price Tracker](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
-> *Trợ lý săn deal đa sàn tự động (Shopee, TikTok Shop, Lazada). Tích hợp còi hú Web Audio khẩn cấp, Web Push đánh thức điện thoại khi tắt màn hình và cơ chế gamification.*
-- **Tech Stack:** React 19, TypeScript, Node.js, Express.js, Prisma ORM, PostgreSQL, Web Push, TailwindCSS 4.
-- **Vai trò:** Full-Stack Developer & Product Builder.
-
----
-
-### 📊 Hoạt Động GitHub
-
-<div align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=tranvoanhkiet2607-eng&show_icons=true&theme=tokyonight&hide_border=true" alt="tranvoanhkiet2607-eng's GitHub stats" width="48%" />
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=tranvoanhkiet2607-eng&theme=tokyonight&hide_border=true" alt="tranvoanhkiet2607-eng's streak" width="48%" />
-</div>
+# ⚡ TRẦN VÕ ANH KIỆT (Heartbreaker) 🚀
+### *Full-Stack Software Engineer • Product Creator • Tech Innovator*
 
 <br/>
 
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=24&pause=1200&color=00E676&center=true&vCenter=true&width=620&lines=Full-Stack+Web+%26+Mobile+Engineer;React+19+%7C+TypeScript+%7C+Node.js+20;Founder+%26+Lead+Developer+at+DealPing;Building+High-Performance+Web+Applications;Always+Learning%2C+Always+Shipping%21" alt="Typing SVG" />
+</p>
+
+<br/>
+
+[![GitHub Followers](https://img.shields.io/github/followers/tranvoanhkiet2607-eng?label=Followers&style=for-the-badge&color=24292e&logo=github)](https://github.com/tranvoanhkiet2607-eng)
+[![Total Stars](https://img.shields.io/github/stars/tranvoanhkiet2607-eng?style=for-the-badge&color=F59E0B&logo=star&logoColor=white)](https://github.com/tranvoanhkiet2607-eng)
+[![FPT University](https://img.shields.io/badge/University-FPT_University-F27023?style=for-the-badge&logo=fpt&logoColor=white)](https://fpt.edu.vn)
+[![Location: Vietnam](https://img.shields.io/badge/Location-Vietnam_🇻🇳-ED1C24?style=for-the-badge)](https://vi.wikipedia.org/wiki/Vi%E1%BB%87t_Nam)
+[![Gmail](https://img.shields.io/badge/Email-tranvoanhkiet2607%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:tranvoanhkiet2607@gmail.com)
+
+<br/>
+
+> 💡 *"Turning complex problems into elegant, scalable, and frictionless digital experiences."*
+
+---
+
+</div>
+
+## 📌 Về Bản Thân
+
+Xin chào! Tôi là **Trần Võ Anh Kiệt**, một kỹ sư phần mềm Full-Stack và người đam mê xây dựng các sản phẩm công nghệ có tính ứng dụng thực tiễn cao:
+- 🎓 **Học vấn**: Sinh viên ngành Kỹ thuật Phần mềm / Khởi nghiệp Đổi mới Sáng tạo (**EXE101**) tại **Trường Đại học FPT**.
+- 🔭 **Dự án trọng tâm**: Nhà sáng lập & Lập trình viên chính của **[DealPing FlashSale](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)** — Trợ lý săn deal đáy đa sàn (Shopee, TikTok Shop, Lazada) tích hợp còi hú Web Audio & Web Push.
+- ⚡ **Thế mạnh**: Thiết kế giao diện hiện đại (Glassmorphism / iOS Dark Theme), tối ưu hóa hiệu năng render 60fps, xây dựng kiến trúc RESTful Backend mở rộng và tích hợp hệ thống cảnh báo thời gian thực.
+- 💬 **Sẵn sàng kết nối**: Thảo luận về khởi nghiệp công nghệ, kiến trúc web hiện đại và hợp tác phát triển dự án.
+
+---
+
+## 🛠️ Công Nghệ & Kỹ Năng Chuyên Môn (Tech Stack)
+
+### 🎨 Frontend & UI/UX
+<p>
+  <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  <img src="https://img.shields.io/badge/TypeScript_5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript_ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+  <img src="https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
+  <img src="https://img.shields.io/badge/TailwindCSS_4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
+</p>
+
+### ⚙️ Backend & Cơ Sở Dữ Liệu
+<p>
+  <img src="https://img.shields.io/badge/Node.js_20-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma_ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/RESTful_APIs-005571?style=for-the-badge&logo=postman&logoColor=white" />
+  <img src="https://img.shields.io/badge/Cron_Job-FF6F00?style=for-the-badge&logo=clockify&logoColor=white" />
+</p>
+
+### 📲 Mobile, Real-time & Nền Tảng Đám Mây
+<p>
+  <img src="https://img.shields.io/badge/Capacitor-119EFF?style=for-the-badge&logo=capacitor&logoColor=white" />
+  <img src="https://img.shields.io/badge/Web_Audio_API-9B51E0?style=for-the-badge&logo=audio&logoColor=white" />
+  <img src="https://img.shields.io/badge/W3C_Web_Push-00E676?style=for-the-badge&logo=pwa&logoColor=black" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
+  <img src="https://img.shields.io/badge/Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white" />
+</p>
+
+---
+
+## 🎯 Dự Án Tiêu Biểu: DealPing FlashSale
+
 <div align="center">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=tranvoanhkiet2607-eng&layout=compact&theme=tokyonight&hide_border=true" alt="Top Languages" />
+
+### [⚡ DealPing — Hệ Thống Radar Săn Deal Đáy 24/7](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
+*Giải pháp giám sát biến động giá sàn thương mại điện tử và kích hoạt chuông báo khẩn cấp tức thì.*
+
+<br/>
+
+```mermaid
+flowchart LR
+    A[🛒 Sàn Shopee / TikTok / Lazada] -->|Cron Quét Tự Động| B[⚙️ DealPing Backend & Prisma]
+    B -->|Phát Hiện Sập Giá| C[🚨 Còi Hú Web Audio & Web Push]
+    C -->|Đánh Thức Màn Hình| D[📱 Người Dùng Chốt Đơn Đáy]
+```
+
+</div>
+
+- 📡 **Multi-Platform Radar**: Tự động bóc tách link sản phẩm Shopee (dài + rút gọn), TikTok Shop, Lazada.
+- 🚨 **Báo động sập giá đa tầng**: Còi hú Web Audio Synthesizer, Dynamic Island Banner iOS và Web Push W3C đánh thức điện thoại khi tắt màn hình.
+- 🫧 **Gamification**: Mini-game nổ bong bóng deal mở khóa ô theo dõi thứ 2.
+- 📦 **Tech Stack**: React 19, TypeScript, Node.js 20, PostgreSQL, Prisma ORM, TailwindCSS 4.
+
+👉 [Khám phá mã nguồn dự án DealPing tại đây](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
+
+---
+
+## 📊 Thống Kê Hoạt Động GitHub
+
+<div align="center">
+
+<img src="https://github-readme-stats.vercel.app/api?username=tranvoanhkiet2607-eng&show_icons=true&theme=tokyonight&hide_border=true&count_private=true" width="48%" alt="GitHub Stats" />
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=tranvoanhkiet2607-eng&theme=tokyonight&hide_border=true" width="48%" alt="GitHub Streak" />
+
+<br/>
+
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=tranvoanhkiet2607-eng&layout=compact&theme=tokyonight&hide_border=true" alt="Top Languages" />
+
+</div>
+
+---
+
+## 📬 Kết Nối Với Tôi
+
+<div align="center">
+
+[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:tranvoanhkiet2607@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/tranvoanhkiet2607-eng)
+[![DealPing](https://img.shields.io/badge/DealPing-Project-00E676?style=for-the-badge&logo=radar&logoColor=black)](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
+
+<br/>
+
+**⭐ Cảm ơn bạn đã ghé thăm trang cá nhân của tôi! Chúc bạn một ngày tràn đầy cảm hứng sáng tạo! ⭐**
+
 </div>
 ```
