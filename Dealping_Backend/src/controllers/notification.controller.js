@@ -37,9 +37,20 @@ const remove = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: "Đã xoá thông báo" });
 });
 
+const registerDeviceToken = asyncHandler(async (req, res) => {
+  const { userId, deviceToken } = req.body;
+  if (!userId || !deviceToken) {
+    return res.status(400).json({ success: false, message: "Thiếu userId hoặc deviceToken" });
+  }
+  await notificationService.saveDeviceToken(userId, deviceToken);
+  res.status(200).json({ success: true, message: "Đã đăng ký deviceToken thành công" });
+});
+
 module.exports = {
   list,
   markRead,
   markAllRead,
   remove,
+  registerDeviceToken,
 };
+

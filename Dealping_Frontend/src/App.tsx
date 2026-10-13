@@ -152,9 +152,10 @@ export interface PriceDropData {
   timestamp?: string
 }
 
-const API_URL = import.meta.env.VITE_API_URL || ((typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_URL = isLocalhost
   ? "http://localhost:3000"
-  : "https://api-dealping-be-flashsale.onrender.com")
+  : (import.meta.env.VITE_API_URL || "https://api-dealping-be-flashsale.onrender.com");
 
 function getUserId() {
   let userId = localStorage.getItem("dealping_user_id")
@@ -191,6 +192,19 @@ function extractUrlFromText(text: string): string {
   if (!text) return ""
   const match = text.match(/https?:\/\/[^\s]+/i)
   return match ? match[0] : text.trim()
+}
+
+const VAPID_PUBLIC_KEY = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string) || "BDLxf7wjsZz69DdoYJNWWKHB1eg3AeUomsXCW58uCZjxYciyEUxd1vyj-WTdieRDBVX44i-h6EVF4Gt89xnDsRE"
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
 }
 
 async function sendToBackend(
@@ -660,6 +674,8 @@ function OrderDetailModal({
   onTriggerAlarm,
   onRemove,
   onCopyLink,
+  onUpdateTargetPrice,
+  onSimulateDrop,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -684,7 +700,14 @@ function OrderDetailModal({
   onTriggerAlarm: () => void
   onRemove: () => void
   onCopyLink: () => void
+  onUpdateTargetPrice?: (newPrice: number) => Promise<void>
+  onSimulateDrop?: () => Promise<void>
 }) {
+  const [isEditingTarget, setIsEditingTarget] = useState(false)
+  const [editTargetVal, setEditTargetVal] = useState("")
+  const [isSavingTarget, setIsSavingTarget] = useState(false)
+  const [isSimulatingDrop, setIsSimulatingDrop] = useState(false)
+
   if (!isOpen || !data) return null
 
   const isSlot1 = data.slotNum === 1
@@ -813,14 +836,73 @@ function OrderDetailModal({
                 </div>
               )}
 
-              <div className="flex justify-between items-center bg-purple-500/20 -mx-1.5 px-2 py-1.5 rounded-xl border border-purple-400/30">
-                <span className="text-[11px] font-bold text-purple-200 flex items-center space-x-1">
-                  <span>🎯 Giá mong muốn bạn đặt:</span>
-                </span>
-                <span className="text-sm font-black text-emerald-400 animate-pulse">
-                  {formatVND(targetNum || baseNum)}
-                </span>
-              </div>
+              {isEditingTarget ? (
+                <div className="bg-purple-950/70 p-2.5 rounded-xl border border-purple-400/50 space-y-2 -mx-1">
+                  <div className="flex justify-between items-center text-[10px] text-purple-200 font-bold">
+                    <span>🎯 Nhập giá mong muốn mới:</span>
+                    <button
+                      onClick={() => setIsEditingTarget(false)}
+                      className="text-slate-400 hover:text-white text-xs px-1 cursor-pointer"
+                    >
+                      ✕ Hủy
+                    </button>
+                  </div>
+                  <div className="flex space-x-1.5">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="VD: 350.000 đ"
+                      value={editTargetVal}
+                      onChange={(e) => setEditTargetVal(formatInputNumber(e.target.value))}
+                      className="flex-1 bg-black/70 border border-purple-400/40 rounded-lg px-2.5 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-pink-400"
+                    />
+                    <button
+                      disabled={isSavingTarget || !parseVND(editTargetVal)}
+                      onClick={async () => {
+                        if (!onUpdateTargetPrice) return
+                        const val = parseVND(editTargetVal)
+                        if (val <= 0) return
+                        setIsSavingTarget(true)
+                        try {
+                          await onUpdateTargetPrice(val)
+                          setIsEditingTarget(false)
+                        } finally {
+                          setIsSavingTarget(false)
+                        }
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white font-bold text-[10px] cursor-pointer whitespace-nowrap shadow"
+                    >
+                      {isSavingTarget ? "Đang lưu..." : "💾 Lưu vào DB"}
+                    </button>
+                  </div>
+                  <p className="text-[8.5px] text-purple-300">
+                    * Giá sẽ được lưu trực tiếp vào Database & tự động hú còi khi giá sàn sập về mức này.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center bg-purple-500/20 -mx-1.5 px-2 py-1.5 rounded-xl border border-purple-400/30">
+                  <span className="text-[11px] font-bold text-purple-200 flex items-center space-x-1">
+                    <span>🎯 Giá mong muốn bạn đặt:</span>
+                  </span>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-sm font-black text-emerald-400 animate-pulse">
+                      {formatVND(targetNum || baseNum)}
+                    </span>
+                    {onUpdateTargetPrice && (
+                      <button
+                        onClick={() => {
+                          setEditTargetVal(formatInputNumber(targetNum || baseNum))
+                          setIsEditingTarget(true)
+                        }}
+                        className="px-1.5 py-0.5 rounded-md bg-purple-500/40 hover:bg-purple-500/60 border border-purple-400/50 text-[9px] font-bold text-purple-100 hover:text-white cursor-pointer"
+                        title="Chỉnh sửa giá mong muốn lưu vào database"
+                      >
+                        ✏️ Sửa
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {discountPct >= 20 && (
                 <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-300 flex items-center space-x-1">
@@ -879,7 +961,7 @@ function OrderDetailModal({
             </div>
             <div className="flex justify-between items-center">
               <span className="opacity-70">Tần suất quét Radar:</span>
-              <span className="font-bold text-purple-300">⚡ Tự động 24/7 (mỗi 2 phút)</span>
+              <span className="font-bold text-purple-300">⚡ Tự động 24/7 (mỗi 10 phút)</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="opacity-70">Kênh thông báo:</span>
@@ -915,12 +997,24 @@ function OrderDetailModal({
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={onTriggerAlarm}
-              className="py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-bold text-[10px] active:scale-95 transition cursor-pointer flex items-center justify-center space-x-1"
-              title="Thử chuông báo động sập giá"
+              disabled={isSimulatingDrop}
+              onClick={async () => {
+                if (onSimulateDrop) {
+                  setIsSimulatingDrop(true)
+                  try {
+                    await onSimulateDrop()
+                  } finally {
+                    setIsSimulatingDrop(false)
+                  }
+                } else {
+                  onTriggerAlarm()
+                }
+              }}
+              className="py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 border border-red-400/50 text-white font-bold text-[10px] active:scale-95 transition cursor-pointer flex items-center justify-center space-x-1 shadow-md shadow-red-900/40 disabled:opacity-50"
+              title="Kích hoạt sập giá vào Database và phát còi hú về giao diện"
             >
-              <span>🚨</span>
-              <span>Test Hú Còi Sập Giá</span>
+              <span>{isSimulatingDrop ? "⏳" : "🚨"}</span>
+              <span>{isSimulatingDrop ? "Đang lưu DB..." : "Sập Giá Vào DB (Hú)"}</span>
             </button>
             <button
               onClick={onCopyLink}
@@ -1355,12 +1449,12 @@ function SlotCard({
               <p className="text-[9px] opacity-70 truncate">
                 {productPrice} | <b className={accentActive}>{variant}</b>
               </p>
-              <div className="flex items-center space-x-1.5 mt-0.5">
-                <span className="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <div className="flex items-center space-x-1.5 mt-0.5 overflow-hidden">
+                <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                   <span>{statusLabel || "Đang rình giá"}</span>
                 </span>
-                <span className="text-[8px] text-white/50">
+                <span className="text-[8px] text-white/50 whitespace-nowrap truncate">
                   • {lastCheckedText || "Vừa xong"}
                 </span>
               </div>
@@ -1863,6 +1957,7 @@ export default function App() {
   const triggerPriceDropAlarm = useCallback((data: PriceDropData) => {
     setAlarmData(data)
     setPushNotification(data)
+    setShowAlarmModal(true)
     if (pushNotificationTimer.current) clearTimeout(pushNotificationTimer.current)
     pushNotificationTimer.current = setTimeout(() => {
       setPushNotification(null)
@@ -2032,6 +2127,98 @@ export default function App() {
     triggerPriceDropAlarm
   ])
 
+  const handleUpdateTargetPriceInDb = useCallback(async (newPrice: number) => {
+    const isS2 = detailModalSlot === 2
+    const itemId = isS2 ? slot2ItemId : slot1ItemId
+    const cleanApiUrl = API_URL.replace(/\/$/, "")
+
+    if (isS2) {
+      setSlot2TargetPrice(formatInputNumber(newPrice))
+    } else {
+      setSlot1TargetPrice(formatInputNumber(newPrice))
+    }
+
+    if (itemId) {
+      try {
+        const res = await fetch(`${cleanApiUrl}/api/tracking-items/${itemId}/target-price`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: getUserId(),
+            targetPrice: newPrice,
+          }),
+        })
+        if (res.ok) {
+          showToast("💾 Đã lưu vào DB", `Giá mong muốn ${formatVND(newPrice)} đã lưu vĩnh viễn vào Database!`, "✅")
+          return
+        }
+      } catch (e) {
+        console.warn("Lỗi lưu DB:", e)
+      }
+    }
+
+    try {
+      const localItems = JSON.parse(localStorage.getItem("dealping_tracked_items") || "[]")
+      if (localItems.length > 0) {
+        const idx = isS2 ? 1 : 0
+        if (localItems[idx]) {
+          localItems[idx].targetPrice = newPrice
+          localStorage.setItem("dealping_tracked_items", JSON.stringify(localItems))
+        }
+      }
+    } catch (e) {}
+    showToast("💾 Đã lưu giá mong muốn", `Giá: ${formatVND(newPrice)}`, "🎯")
+  }, [detailModalSlot, slot1ItemId, slot2ItemId, showToast])
+
+  const handleSimulateDropInDb = useCallback(async () => {
+    const isS2 = detailModalSlot === 2
+    const itemId = isS2 ? slot2ItemId : slot1ItemId
+    const cleanApiUrl = API_URL.replace(/\/$/, "")
+
+    const chosenInput = isS2 ? slot2Input : slot1Input
+    const isTikTok = chosenInput.toLowerCase().includes("tiktok")
+    const isLazada = chosenInput.toLowerCase().includes("lazada") || chosenInput.toLowerCase().includes("laz")
+    const baseP = (isS2 ? slot2BasePrice : slot1BasePrice) || (isS2 ? parseVND(slot2ProductPrice) : parseVND(slot1ProductPrice)) || 0
+    const targetP = parseVND(isS2 ? slot2TargetPrice : slot1TargetPrice) || Math.round(baseP * 0.7)
+
+    if (itemId) {
+      try {
+        const res = await fetch(`${cleanApiUrl}/api/tracking-items/${itemId}/simulate-drop`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: getUserId() }),
+        })
+        if (res.ok) {
+          if (isS2) {
+            setSlot2Status("Đã sập giá")
+            setSlot2Advice("Giá đã chạm đáy mục tiêu trong DB, nên mua ngay kẻo lỡ!")
+          } else {
+            setSlot1Status("Đã sập giá")
+            setSlot1Advice("Giá đã chạm đáy mục tiêu trong DB, nên mua ngay kẻo lỡ!")
+          }
+        }
+      } catch (e) {
+        console.warn("Lỗi gọi simulate-drop backend:", e)
+      }
+    }
+
+    const dropAlarmData: PriceDropData = {
+      productName: (isS2 ? (slot2ProductName || slot2PreviewName) : (slot1ProductName || slot1PreviewName)) || "Sản phẩm săn deal",
+      oldPrice: baseP,
+      newPrice: targetP,
+      flashSalePrice: targetP,
+      imageUrl: isS2 ? slot2ImageUrl : slot1ImageUrl,
+      affiliateUrl: isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input),
+      slotNum: isS2 ? 2 : 1,
+      platformBadge: isTikTok ? "TIKTOK SHOP - SẬP GIÁ" : isLazada ? "LAZADA - SẬP GIÁ" : "SHOPEE MALL - ĐÃ SẬP GIÁ VÀO DB",
+      discountCodes: [],
+    }
+
+    setDetailModalSlot(null)
+    triggerPriceDropAlarm(dropAlarmData)
+    showToast("🚨 ĐÃ SẬP GIÁ VÀO DB!", "Database đã chuyển sang TARGET_HIT và còi báo động đã hú!", "🔥")
+  }, [detailModalSlot, slot1ItemId, slot2ItemId, slot1Input, slot2Input, slot1BasePrice, slot2BasePrice, slot1ProductPrice, slot2ProductPrice, slot1TargetPrice, slot2TargetPrice, slot1ProductName, slot2ProductName, slot1PreviewName, slot2PreviewName, slot1ImageUrl, slot2ImageUrl, slot1AffiliateUrl, slot2AffiliateUrl, triggerPriceDropAlarm, showToast])
+
   // Bubble spawner
   const spawnBubble = useCallback(() => {
     if (view !== "main") return
@@ -2059,6 +2246,78 @@ export default function App() {
     })
   }, [view])
 
+  // Ref lưu ID các sản phẩm đã phát còi hú để không hú lặp đi lặp lại
+  const alertedItemIdsRef = useRef<Set<string>>(new Set())
+
+  // Đăng ký Service Worker & Web Push Subscription để nhận thông báo đẩy khi tắt điện thoại
+  const registerDeviceToken = useCallback(async () => {
+    try {
+      const cleanApiUrl = API_URL.replace(/\/$/, "")
+      let pushToken = localStorage.getItem("dealping_device_token")
+
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        try {
+          const registration = await navigator.serviceWorker.register("/sw.js")
+          let sub = await registration.pushManager.getSubscription()
+
+          if (!sub && "Notification" in window && Notification.permission === "granted") {
+            sub = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            })
+          }
+
+          if (sub) {
+            pushToken = JSON.stringify(sub)
+          }
+        } catch (swErr) {
+          console.warn("Chưa đăng ký được Service Worker Web Push:", swErr)
+        }
+      }
+
+      if (!pushToken) {
+        pushToken = `web-${getUserId()}`
+      }
+
+      localStorage.setItem("dealping_device_token", pushToken)
+      await fetch(`${cleanApiUrl}/api/notifications/device-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: getUserId(),
+          deviceToken: pushToken,
+        }),
+      })
+      console.log("📲 Đã đăng ký Push Notification cho điện thoại thành công!")
+    } catch (e) {
+      console.warn("Chưa đăng ký được device token:", e)
+    }
+  }, [])
+
+  // Khi người dùng bấm vào Push Notification từ màn hình khóa để vào app:
+  // Vào app thì LẬP TỨC CÒI HÚ + RUNG + POPUP BÁO ĐỘNG SẬP GIÁ!
+  useEffect(() => {
+    const checkAlarmOnOpen = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get("alarm") === "1") {
+        window.history.replaceState({}, document.title, window.location.pathname)
+        setTimeout(() => {
+          handleTestAlarm()
+        }, 600)
+      }
+    }
+
+    checkAlarmOnOpen()
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        checkAlarmOnOpen()
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility)
+    return () => document.removeEventListener("visibilitychange", handleVisibility)
+  }, [handleTestAlarm])
+
   useEffect(() => {
     // Đánh thức server Render ngầm ngay khi mở App
     const cleanApiUrl = API_URL.replace(/\/$/, "")
@@ -2068,48 +2327,126 @@ export default function App() {
       setMounted(true)
     }, 100)
 
-    // Tự động đồng bộ các món đã lưu từ database server về UI
+    // Tự động đăng ký Device Token và xin quyền thông báo
+    registerDeviceToken()
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().then((perm) => {
+        if (perm === "granted") registerDeviceToken()
+      }).catch(() => {})
+    }
+
+    // Tự động đồng bộ các món đã lưu từ database server về UI (khôi phục cả giá mong muốn)
     async function loadSavedItems() {
+      let items: any[] = []
+      try {
+        const res = await fetch(`${cleanApiUrl}/api/tracking-items?userId=${getUserId()}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            items = json.data
+          }
+        }
+      } catch (e) {
+        console.warn("Chưa đồng bộ được món cũ từ server, thử fallback local:", e)
+      }
+
+      // Fallback từ LocalStorage nếu chưa lấy được từ backend (ví dụ Render đang cold start)
+      if (items.length === 0) {
+        try {
+          const localData = JSON.parse(localStorage.getItem("dealping_tracked_items") || "[]")
+          if (Array.isArray(localData) && localData.length > 0) {
+            items = localData
+          }
+        } catch (e) {}
+      }
+
+      if (items.length > 0) {
+        if (items[0]) {
+          setSlot1ItemId(items[0].id)
+          setSlot1Input(items[0].shopeeUrl || items[0].productUrl || items[0].url || "")
+          setSlot1ProductName(items[0].productName || "Món 1 đang theo dõi")
+          setSlot1ProductPrice(items[0].targetPrice ? formatVND(items[0].targetPrice) : "")
+          if (items[0].targetPrice) {
+            setSlot1TargetPrice(formatInputNumber(items[0].targetPrice))
+          }
+          if (items[0].originalPrice) setSlot1BasePrice(Number(items[0].originalPrice))
+          if (items[0].variantName) setSlot1Variant(items[0].variantName)
+          if (items[0].imageUrl) setSlot1ImageUrl(items[0].imageUrl)
+          if (items[0].lastCheckedAgo || items[0].lastCheckedText) setSlot1LastChecked(items[0].lastCheckedAgo || items[0].lastCheckedText)
+          if (items[0].statusLabel) setSlot1Status(items[0].statusLabel)
+          if (items[0].advice) setSlot1Advice(items[0].advice)
+          setSlot1Active(true)
+        }
+        if (items[1]) {
+          setSlot2ItemId(items[1].id)
+          setSlot2Input(items[1].shopeeUrl || items[1].productUrl || items[1].url || "")
+          setSlot2ProductName(items[1].productName || "Món 2 đang theo dõi")
+          setSlot2ProductPrice(items[1].targetPrice ? formatVND(items[1].targetPrice) : "")
+          if (items[1].targetPrice) {
+            setSlot2TargetPrice(formatInputNumber(items[1].targetPrice))
+          }
+          if (items[1].originalPrice) setSlot2BasePrice(Number(items[1].originalPrice))
+          if (items[1].variantName) setSlot2Variant(items[1].variantName)
+          if (items[1].imageUrl) setSlot2ImageUrl(items[1].imageUrl)
+          if (items[1].lastCheckedAgo || items[1].lastCheckedText) setSlot2LastChecked(items[1].lastCheckedAgo || items[1].lastCheckedText)
+          if (items[1].statusLabel) setSlot2Status(items[1].statusLabel)
+          if (items[1].advice) setSlot2Advice(items[1].advice)
+          setSlot2BubbleUnlocked(true)
+          setSlot2Active(true)
+        }
+      }
+    }
+    loadSavedItems()
+
+    // BẬT BỘ RÀ SOÁT SẬP GIÁ REALTIME: Định kỳ mỗi 15 giây tự động kiểm tra xem có món nào chạm giá mục tiêu không
+    const checkPriceDropRealtime = async () => {
       try {
         const res = await fetch(`${cleanApiUrl}/api/tracking-items?userId=${getUserId()}`)
         if (!res.ok) return
         const json = await res.json()
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           const items = json.data
-          if (items[0]) {
-            setSlot1ItemId(items[0].id)
-            setSlot1Input(items[0].shopeeUrl || items[0].productUrl || items[0].url || "")
-            setSlot1ProductName(items[0].productName || "Món 1 đang theo dõi")
-            setSlot1ProductPrice(items[0].targetPrice ? formatVND(items[0].targetPrice) : "")
-            if (items[0].originalPrice) setSlot1BasePrice(Number(items[0].originalPrice))
-            if (items[0].variantName) setSlot1Variant(items[0].variantName)
-            if (items[0].imageUrl) setSlot1ImageUrl(items[0].imageUrl)
-            if (items[0].lastCheckedAgo || items[0].lastCheckedText) setSlot1LastChecked(items[0].lastCheckedAgo || items[0].lastCheckedText)
-            if (items[0].statusLabel) setSlot1Status(items[0].statusLabel)
-            if (items[0].advice) setSlot1Advice(items[0].advice)
-            setSlot1Active(true)
-          }
-          if (items[1]) {
-            setSlot2ItemId(items[1].id)
-            setSlot2Input(items[1].shopeeUrl || items[1].productUrl || items[1].url || "")
-            setSlot2ProductName(items[1].productName || "Món 2 đang theo dõi")
-            setSlot2ProductPrice(items[1].targetPrice ? formatVND(items[1].targetPrice) : "")
-            if (items[1].originalPrice) setSlot2BasePrice(Number(items[1].originalPrice))
-            if (items[1].variantName) setSlot2Variant(items[1].variantName)
-            if (items[1].imageUrl) setSlot2ImageUrl(items[1].imageUrl)
-            if (items[1].lastCheckedAgo || items[1].lastCheckedText) setSlot2LastChecked(items[1].lastCheckedAgo || items[1].lastCheckedText)
-            if (items[1].statusLabel) setSlot2Status(items[1].statusLabel)
-            if (items[1].advice) setSlot2Advice(items[1].advice)
-            setSlot2BubbleUnlocked(true)
-            setSlot2Active(true)
+          for (const item of items) {
+            const isHit = item.status === "target_hit" || item.rawStatus === "TARGET_HIT"
+            if (isHit && item.id && !alertedItemIdsRef.current.has(item.id)) {
+              alertedItemIdsRef.current.add(item.id)
+
+              const isSlot2Item = slot2ItemId === item.id
+              const targetP = item.targetPrice ? Number(item.targetPrice) : 0
+              const origP = item.originalPrice ? Number(item.originalPrice) : Math.round(targetP * 1.3)
+              const rawU = (item.shopeeUrl || item.productUrl || item.url || "").toLowerCase()
+              const isTikTok = rawU.includes("tiktok")
+              const isLazada = rawU.includes("lazada")
+
+              // 🚨 TỰ ĐỘNG BẬT CÒI HÚ + RUNG + BẮN THÔNG BÁO VỀ MÁY
+              triggerPriceDropAlarm({
+                productName: item.productName || "Sản phẩm bạn đang theo dõi",
+                oldPrice: origP,
+                newPrice: targetP,
+                flashSalePrice: targetP,
+                imageUrl: item.imageUrl || null,
+                affiliateUrl: item.affiliateUrl || item.shopeeUrl || item.productUrl,
+                slotNum: isSlot2Item ? 2 : 1,
+                platformBadge: isTikTok ? "TIKTOK SHOP - SẬP GIÁ" : isLazada ? "LAZADA - SẬP GIÁ" : "SHOPEE - ĐÃ CHẠM GIÁ MONG MUỐN",
+                discountCodes: [],
+              })
+
+              if (isSlot2Item) {
+                setSlot2Status("Đã sập giá")
+                setSlot2Advice("Giá đã chạm đáy mục tiêu, nên mua ngay kẻo lỡ!")
+              } else {
+                setSlot1Status("Đã sập giá")
+                setSlot1Advice("Giá đã chạm đáy mục tiêu, nên mua ngay kẻo lỡ!")
+              }
+            }
           }
         }
-      } catch (e) {
-        console.warn("Chưa đồng bộ được món cũ từ server:", e)
-      }
+      } catch (e) {}
     }
-    loadSavedItems()
-  }, [])
+
+    const pollInterval = setInterval(checkPriceDropRealtime, 8000)
+    return () => clearInterval(pollInterval)
+  }, [registerDeviceToken, triggerPriceDropAlarm, slot1ItemId, slot2ItemId])
 
   useEffect(() => {
     if (slot1Input.length > 10 && slot1Input.startsWith("http") && slot1Expanded && !slot1Active) {
@@ -2842,6 +3179,9 @@ export default function App() {
                           deleteFromBackend(slot2ItemId)
                           setSlot2ItemId(null)
                         }
+                        try {
+                          localStorage.removeItem("dealping_tracked_items")
+                        } catch (e) {}
                         setSlot2Active(false)
                         setSlot2Input("")
                         setSlot2Expanded(false)
@@ -2970,6 +3310,9 @@ export default function App() {
                           deleteFromBackend(slot1ItemId)
                           setSlot1ItemId(null)
                         }
+                        try {
+                          localStorage.removeItem("dealping_tracked_items")
+                        } catch (e) {}
                         setSlot1Active(false)
                         setSlot1Input("")
                         setSlot1Expanded(false)
@@ -3248,6 +3591,9 @@ export default function App() {
               }}
               onRemove={() => {
                 const isS2 = detailModalSlot === 2
+                try {
+                  localStorage.removeItem("dealping_tracked_items")
+                } catch (e) {}
                 if (isS2) {
                   if (slot2ItemId) {
                     deleteFromBackend(slot2ItemId)
@@ -3287,6 +3633,8 @@ export default function App() {
                   }
                 }
               }}
+              onUpdateTargetPrice={handleUpdateTargetPriceInDb}
+              onSimulateDrop={handleSimulateDropInDb}
             />
           )}
 

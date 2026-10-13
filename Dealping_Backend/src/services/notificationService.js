@@ -1,8 +1,17 @@
 const prisma = require("../config/prisma");
-const { messaging } = require("../config/firebase");
+const admin = require("../config/firebase");
+const webpush = require("web-push");
+
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || "mailto:support@dealping.com",
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 /**
- * Gửi Push Notification qua Firebase Cloud Messaging (FCM)
+ * Gửi Push Notification (Web Push W3C hoặc Firebase FCM)
  */
 async function sendPushNotification(deviceToken, title, body, data = {}) {
   try {
@@ -11,29 +20,55 @@ async function sendPushNotification(deviceToken, title, body, data = {}) {
       return;
     }
 
-    if (!messaging) {
-      console.warn("⚠️ Không thể gửi Push: Firebase Admin (messaging) chưa được khởi tạo.");
-      return;
+    // 1. Kiểm tra nếu deviceToken là PushSubscription JSON (Web Push - Đánh thức điện thoại khi tắt màn hình)
+    let isWebPush = false;
+    let pushSubscription = null;
+    if (typeof deviceToken === "string" && (deviceToken.startsWith("{") || deviceToken.includes("endpoint"))) {
+      try {
+        pushSubscription = JSON.parse(deviceToken);
+        if (pushSubscription && pushSubscription.endpoint) {
+          isWebPush = true;
+        }
+      } catch (e) {}
+    } else if (typeof deviceToken === "object" && deviceToken.endpoint) {
+      isWebPush = true;
+      pushSubscription = deviceToken;
     }
 
-    // FCM data values must be strings
-    const serializedData = {};
-    for (const [key, val] of Object.entries(data)) {
-      serializedData[key] = typeof val === "string" ? val : JSON.stringify(val);
+    if (isWebPush && pushSubscription) {
+      const payload = JSON.stringify({
+        title,
+        body,
+        icon: data.imageUrl || "/logo.png",
+        url: `/?alarm=1&itemId=${data.trackingItemId || ""}`,
+        productName: data.productName,
+        newPrice: data.newPrice,
+        oldPrice: data.oldPrice,
+        imageUrl: data.imageUrl,
+        trackingItemId: data.trackingItemId,
+      });
+
+      const res = await webpush.sendNotification(pushSubscription, payload);
+      console.log("✅ Đã bắn Web Push thành công về điện thoại (kể cả khi tắt máy):", res.statusCode);
+      return res;
     }
 
-    const message = {
-      notification: {
-        title: title,
-        body: body,
-      },
-      data: serializedData,
-      token: deviceToken,
-    };
-
-    const response = await messaging.send(message);
-    console.log("✅ Đã gửi thông báo FCM thành công:", response);
-    return response;
+    // 2. Fallback sang Firebase Admin (FCM Token)
+    const messaging = typeof admin.messaging === "function" ? admin.messaging() : admin.messaging;
+    if (messaging) {
+      const serializedData = {};
+      for (const [key, val] of Object.entries(data)) {
+        serializedData[key] = typeof val === "string" ? val : JSON.stringify(val);
+      }
+      const message = {
+        notification: { title, body },
+        data: serializedData,
+        token: deviceToken,
+      };
+      const response = await messaging.send(message);
+      console.log("✅ Đã gửi thông báo FCM thành công:", response);
+      return response;
+    }
   } catch (error) {
     console.error("❌ Lỗi khi gửi Push Notification:", error.message);
   }
@@ -114,14 +149,26 @@ async function notifyPriceDrop({
     type: "PRICE_DROP",
   });
 
-  // 2. Bắn Push Notification nếu có deviceToken
-  if (deviceToken) {
-    await sendPushNotification(deviceToken, title, message, {
+  // 2. Bắn Push Notification (Web Push / FCM) để báo về điện thoại khi tắt máy
+  let tokenToSend = deviceToken;
+  if (!tokenToSend && userId) {
+    try {
+      const userRecord = await prisma.user.findUnique({ where: { id: userId } });
+      if (userRecord && userRecord.deviceToken) {
+        tokenToSend = userRecord.deviceToken;
+      }
+    } catch (e) {}
+  }
+
+  if (tokenToSend) {
+    await sendPushNotification(tokenToSend, title, message, {
       notificationId: dbNotif.id,
       trackingItemId: trackingItemId || "",
       productUrl: productUrl || "",
       newPrice: String(newPrice),
       oldPrice: String(oldPrice || ""),
+      productName: productName || "",
+      imageUrl: imageUrl || "",
     });
   }
 
@@ -169,6 +216,22 @@ async function deleteNotification(id, userId) {
   });
 }
 
+/**
+ * Đăng ký / cập nhật deviceToken cho user
+ */
+async function saveDeviceToken(userId, deviceToken) {
+  if (!userId || !deviceToken) return null;
+  return await prisma.user.upsert({
+    where: { id: userId },
+    update: { deviceToken },
+    create: {
+      id: userId,
+      email: `guest_${userId.substring(0, 8)}@dealping.com`,
+      deviceToken,
+    },
+  });
+}
+
 module.exports = {
   sendPushNotification,
   createInAppNotification,
@@ -177,4 +240,5 @@ module.exports = {
   markAsRead,
   markAllAsRead,
   deleteNotification,
+  saveDeviceToken,
 };

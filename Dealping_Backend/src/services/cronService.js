@@ -183,11 +183,11 @@ async function runPriceCheckBot() {
  * Bắt đầu các cron jobs để lấy giá tự động.
  */
 function startCronJobs() {
-  // Chu kỳ quét tối ưu: Mặc định mỗi 2 phút (hoặc cấu hình qua biến môi trường CRON_SCHEDULE)
-  const cronSchedule = process.env.CRON_SCHEDULE || "*/2 * * * *";
+  // Chu kỳ quét tự động: Mặc định mỗi 10 phút (hoặc cấu hình qua biến môi trường CRON_SCHEDULE)
+  const cronSchedule = process.env.CRON_SCHEDULE || "*/10 * * * *";
 
   cron.schedule(cronSchedule, runPriceCheckBot);
-  console.log(`[CRON] Đã thiết lập cron job quét giá tự động (${cronSchedule}).`);
+  console.log(`[CRON] Đã thiết lập cron job quét giá tự động (mỗi 10 phút: ${cronSchedule}).`);
 
   // Kích hoạt 1 lượt quét ngay khi server khởi động (delay 3s để hoàn tất khởi động)
   setTimeout(() => {

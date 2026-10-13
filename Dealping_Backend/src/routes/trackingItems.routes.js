@@ -8,6 +8,8 @@ router.get("/batch", controller.getBatch); // GET /api/tracking-items/batch?user
 router.post("/", controller.create); // POST /api/tracking-items
 router.get("/", controller.list); // GET  /api/tracking-items?userId=...
 router.delete("/:id", controller.remove); // DELETE /api/tracking-items/:id
+router.patch("/:id/target-price", controller.updateTargetPrice); // PATCH /api/tracking-items/:id/target-price
+router.post("/:id/simulate-drop", controller.simulateDrop); // POST /api/tracking-items/:id/simulate-drop
 router.get("/:id/history", controller.getHistory); // GET /api/tracking-items/:id/history
 router.get("/:id/chart-history", controller.getChartHistory); // GET /api/tracking-items/:id/chart-history
 

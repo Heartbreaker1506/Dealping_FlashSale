@@ -376,6 +376,72 @@ async function previewTrackingItem(urlParams) {
   };
 }
 
+async function updateTargetPrice(id, targetPrice, userId) {
+  const where = userId ? { id, userId } : { id };
+  const item = await prisma.trackingItem.findFirst({ where });
+  if (!item) {
+    throw new ApiError(404, "Không tìm thấy sản phẩm để cập nhật giá mong muốn");
+  }
+  const updated = await prisma.trackingItem.update({
+    where: { id: item.id },
+    data: {
+      targetPrice: Number(targetPrice),
+      lastCheckedAt: new Date(),
+    },
+  });
+  return serializeItem(updated);
+}
+
+async function simulatePriceDrop(id, userId) {
+  const where = userId ? { id, userId } : { id };
+  const item = await prisma.trackingItem.findFirst({
+    where,
+    include: { user: true },
+  });
+  if (!item) {
+    throw new ApiError(404, "Không tìm thấy sản phẩm để kích hoạt sập giá");
+  }
+  const dropPrice = item.targetPrice ? Number(item.targetPrice) : 100000;
+  const now = new Date();
+
+  // 1. Cập nhật trạng thái sập giá vào Database
+  const updated = await prisma.trackingItem.update({
+    where: { id: item.id },
+    data: {
+      status: "TARGET_HIT",
+      lastCheckedAt: now,
+    },
+  });
+
+  // 2. Ghi lịch sử giá sập vào priceHistory trong Database
+  try {
+    await prisma.priceHistory.create({
+      data: {
+        trackingItemId: item.id,
+        price: dropPrice,
+        timestamp: now,
+      },
+    });
+  } catch (e) {}
+
+  // 3. Tạo thông báo trong Database & bắn Push Notification
+  const notificationService = require("./notificationService");
+  try {
+    await notificationService.notifyPriceDrop({
+      userId: item.userId,
+      deviceToken: item.user ? item.user.deviceToken : null,
+      trackingItemId: item.id,
+      productName: item.productName || "Sản phẩm bạn đang theo dõi",
+      productUrl: item.productUrl || "",
+      oldPrice: item.originalPrice ? Number(item.originalPrice) : Math.round(dropPrice * 1.3),
+      newPrice: dropPrice,
+      targetPrice: dropPrice,
+    });
+  } catch (e) {}
+
+  return serializeItem(updated);
+}
+
 module.exports = {
   getMaxSlots,
   createTrackingItem,
@@ -387,4 +453,7 @@ module.exports = {
   listBatchTrackingItems,
   serializeItem,
   formatTimeAgo,
+  updateTargetPrice,
+  simulatePriceDrop,
 };
+

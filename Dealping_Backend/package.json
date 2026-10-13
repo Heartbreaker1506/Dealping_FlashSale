@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon src/server.js",
+    "dev": "npx nodemon src/server.js",
     "start": "npx prisma db push && node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
@@ -21,7 +21,8 @@
     "express": "^4.21.0",
     "firebase-admin": "^14.5.0",
     "jsonwebtoken": "^9.0.3",
-    "node-cron": "^4.6.0"
+    "node-cron": "^4.6.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.7",

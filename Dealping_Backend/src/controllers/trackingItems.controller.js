@@ -55,4 +55,32 @@ const getBatch = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: items });
 });
 
-module.exports = { create, list, remove, getHistory, getChartHistory, preview, getBatch };
+const updateTargetPrice = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { targetPrice, userId } = req.body;
+  if (!targetPrice) {
+    return res.status(400).json({ success: false, message: "Thiếu targetPrice" });
+  }
+  const item = await trackingItemsService.updateTargetPrice(id, targetPrice, userId);
+  res.status(200).json({ success: true, data: item, message: "Đã lưu giá mong muốn vào DB" });
+});
+
+const simulateDrop = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  const item = await trackingItemsService.simulatePriceDrop(id, userId);
+  res.status(200).json({ success: true, data: item, message: "Đã kích hoạt sập giá trong DB" });
+});
+
+module.exports = {
+  create,
+  list,
+  remove,
+  getHistory,
+  getChartHistory,
+  preview,
+  getBatch,
+  updateTargetPrice,
+  simulateDrop,
+};
+
