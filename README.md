@@ -221,7 +221,7 @@ npm run dev
 
 ## 👥 Nhóm Tác Giả & Bản Quyền
 
-- **Tác giả**: [Heartbreaker1506 (Trần Võ Anh Kiệt)](https://github.com/Heartbreaker1506)
+- **Tác giả**: [Heartbreaker1506](https://github.com/Heartbreaker1506)
 - **Đồ án**: EXE101 — Dự án Khởi Nghiệp Đổi Mới Sáng Tạo (FA26)
 - **Tổ chức**: Trường Đại học FPT
 - **Giấy phép**: Phát hành theo giấy phép [MIT License](LICENSE).
