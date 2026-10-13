@@ -19,13 +19,13 @@
 ```markdown
 <div align="center">
 
-# ⚡ TRAN VO ANH KIET 🚀
-### *Full-Stack Software Engineer • Product Builder • Tech Innovator*
+# ⚡ TRAN VO ANH KIET 🌱
+### *Software Developer • Passionate Learner*
 
 <br/>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=24&pause=1200&color=00E676&center=true&vCenter=true&width=650&lines=Full-Stack+Web+%26+Mobile+Engineer;React+19+%7C+TypeScript+%7C+Node.js+20;Co-Creator+at+DealPing+(EXE101);Building+High-Performance+Web+Applications;Always+Learning%2C+Always+Shipping%21" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1200&color=00E676&center=true&vCenter=true&width=550&lines=Software+Developer;Learning+Web+Development;Practicing+React%2C+TypeScript+%26+Node.js;Working+on+university+projects;Always+learning+and+improving+every+day!" alt="Typing SVG" />
 </p>
 
 <br/>
@@ -38,7 +38,7 @@
 
 <br/>
 
-> 💡 *"Turning ambitious ideas and complex engineering challenges into frictionless, production-grade digital experiences."*
+> 🌱 *"Every expert was once a beginner. Learning step by step every day."*
 
 ---
 
@@ -46,19 +46,19 @@
 
 ## 📌 About Me
 
-Hello and welcome! I am **Tran Vo Anh Kiet**, a passionate Full-Stack Software Engineer and builder based in Vietnam 🇻🇳:
+Hello! I'm **Tran Vo Anh Kiet**, a software engineering student who loves coding, exploring new technologies, and learning through hands-on projects:
 
-- 🎓 **Education**: Software Engineering & Innovative Entrepreneurship (**EXE101**) at **FPT University**.
-- 💻 **Engineering Philosophy**: I focus on crafting silky-smooth, 60fps responsive frontends (Glassmorphism & iOS Dark Aesthetics) backed by resilient, scalable RESTful backend services.
-- 🚀 **Current Endeavors**: Building modern e-commerce automation tools, exploring real-time web audio synthesis, and deploying background push notification engines.
-- 🤝 **Teamwork & Collaboration**: An enthusiastic team player with strong communication skills, experienced in pair programming, agile workflows, and co-building products from zero to launch.
-- 💬 **Let's Connect**: Open to tech discussions, innovative startup ideas, and impactful engineering opportunities!
+- 🎓 **Education**: Software Engineering student at **FPT University**.
+- 🌱 **Currently Learning**: Practicing web development with React, TypeScript, and Node.js.
+- 🚀 **Projects**: Working on **DealPing** with my friend for our university course (EXE101) to gain practical experience.
+- 💡 **Mindset**: Humble, curious, and always open to constructive feedback, advice, and guidance from experienced developers.
+- 💬 **Let's Connect**: Feel free to reach out to share knowledge or connect!
 
 ---
 
-## 🛠️ Core Skills & Tech Stack
+## 🛠️ Languages & Tools I'm Learning (Công Nghệ Đang Học & Thực Hành)
 
-### 🎨 Frontend & UI/UX
+### 🎨 Frontend
 <p>
   <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
   <img src="https://img.shields.io/badge/TypeScript_5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
@@ -76,16 +76,12 @@ Hello and welcome! I am **Tran Vo Anh Kiet**, a passionate Full-Stack Software E
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/Prisma_ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
   <img src="https://img.shields.io/badge/RESTful_APIs-005571?style=for-the-badge&logo=postman&logoColor=white" />
-  <img src="https://img.shields.io/badge/Cron_Engine-FF6F00?style=for-the-badge&logo=clockify&logoColor=white" />
 </p>
 
-### 📲 Mobile, Real-Time & Cloud
+### 📲 Tools & Deployment
 <p>
-  <img src="https://img.shields.io/badge/Capacitor-119EFF?style=for-the-badge&logo=capacitor&logoColor=white" />
-  <img src="https://img.shields.io/badge/Web_Audio_API-9B51E0?style=for-the-badge&logo=audio&logoColor=white" />
-  <img src="https://img.shields.io/badge/W3C_Web_Push-00E676?style=for-the-badge&logo=pwa&logoColor=black" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
   <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white" />
 </p>
