@@ -1,5 +1,8 @@
-{
-  "buildCommand": "npm install --prefix Dealping_Frontend && npm run build --prefix Dealping_Frontend",
-  "outputDirectory": "Dealping_Frontend/dist",
-  "framework": "vite"
-}
+  {
+    "rewrites": [
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
+    ]
+  }
