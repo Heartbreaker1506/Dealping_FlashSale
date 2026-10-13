@@ -2,9 +2,17 @@ import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
-
-import siteConfiguration from './.figma/make/site.json' with { type: 'json' }
-
+const siteConfiguration: FigmaSiteConfiguration = {
+  title: 'DealPing - Trợ Lý Săn Deal',
+  description: 'DealPing - Hệ Thống Săn Deal Đáy Đa Sàn Tự Động & Cảnh Báo Sập Giá Tức Thì 24/7',
+  language: 'vi',
+  robots: {
+    index: true,
+  },
+  accessibility: {
+    addBypassLinks: false,
+  },
+}
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
