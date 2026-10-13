@@ -19,13 +19,13 @@
 ```markdown
 <div align="center">
 
-# ⚡ TRẦN VÕ ANH KIỆT (Heartbreaker) 🚀
-### *Full-Stack Software Engineer • Product Creator • Tech Innovator*
+# ⚡ TRAN VO ANH KIET 🚀
+### *Full-Stack Software Engineer • Product Builder • Tech Innovator*
 
 <br/>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=24&pause=1200&color=00E676&center=true&vCenter=true&width=620&lines=Full-Stack+Web+%26+Mobile+Engineer;React+19+%7C+TypeScript+%7C+Node.js+20;Founder+%26+Lead+Developer+at+DealPing;Building+High-Performance+Web+Applications;Always+Learning%2C+Always+Shipping%21" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=24&pause=1200&color=00E676&center=true&vCenter=true&width=650&lines=Full-Stack+Web+%26+Mobile+Engineer;React+19+%7C+TypeScript+%7C+Node.js+20;Co-Creator+at+DealPing+(EXE101);Building+High-Performance+Web+Applications;Always+Learning%2C+Always+Shipping%21" alt="Typing SVG" />
 </p>
 
 <br/>
@@ -38,23 +38,25 @@
 
 <br/>
 
-> 💡 *"Turning complex problems into elegant, scalable, and frictionless digital experiences."*
+> 💡 *"Turning ambitious ideas and complex engineering challenges into frictionless, production-grade digital experiences."*
 
 ---
 
 </div>
 
-## 📌 Về Bản Thân
+## 📌 About Me
 
-Xin chào! Tôi là **Trần Võ Anh Kiệt**, một kỹ sư phần mềm Full-Stack và người đam mê xây dựng các sản phẩm công nghệ có tính ứng dụng thực tiễn cao:
-- 🎓 **Học vấn**: Sinh viên ngành Kỹ thuật Phần mềm / Khởi nghiệp Đổi mới Sáng tạo (**EXE101**) tại **Trường Đại học FPT**.
-- 🔭 **Dự án trọng tâm**: Nhà sáng lập & Lập trình viên chính của **[DealPing FlashSale](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)** — Trợ lý săn deal đáy đa sàn (Shopee, TikTok Shop, Lazada) tích hợp còi hú Web Audio & Web Push.
-- ⚡ **Thế mạnh**: Thiết kế giao diện hiện đại (Glassmorphism / iOS Dark Theme), tối ưu hóa hiệu năng render 60fps, xây dựng kiến trúc RESTful Backend mở rộng và tích hợp hệ thống cảnh báo thời gian thực.
-- 💬 **Sẵn sàng kết nối**: Thảo luận về khởi nghiệp công nghệ, kiến trúc web hiện đại và hợp tác phát triển dự án.
+Hello and welcome! I am **Tran Vo Anh Kiet**, a passionate Full-Stack Software Engineer and builder based in Vietnam 🇻🇳:
+
+- 🎓 **Education**: Software Engineering & Innovative Entrepreneurship (**EXE101**) at **FPT University**.
+- 💻 **Engineering Philosophy**: I focus on crafting silky-smooth, 60fps responsive frontends (Glassmorphism & iOS Dark Aesthetics) backed by resilient, scalable RESTful backend services.
+- 🚀 **Current Endeavors**: Building modern e-commerce automation tools, exploring real-time web audio synthesis, and deploying background push notification engines.
+- 🤝 **Teamwork & Collaboration**: An enthusiastic team player with strong communication skills, experienced in pair programming, agile workflows, and co-building products from zero to launch.
+- 💬 **Let's Connect**: Open to tech discussions, innovative startup ideas, and impactful engineering opportunities!
 
 ---
 
-## 🛠️ Công Nghệ & Kỹ Năng Chuyên Môn (Tech Stack)
+## 🛠️ Core Skills & Tech Stack
 
 ### 🎨 Frontend & UI/UX
 <p>
@@ -67,17 +69,17 @@ Xin chào! Tôi là **Trần Võ Anh Kiệt**, một kỹ sư phần mềm Full-
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
 </p>
 
-### ⚙️ Backend & Cơ Sở Dữ Liệu
+### ⚙️ Backend & Databases
 <p>
   <img src="https://img.shields.io/badge/Node.js_20-339933?style=for-the-badge&logo=node.js&logoColor=white" />
   <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" />
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/Prisma_ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
   <img src="https://img.shields.io/badge/RESTful_APIs-005571?style=for-the-badge&logo=postman&logoColor=white" />
-  <img src="https://img.shields.io/badge/Cron_Job-FF6F00?style=for-the-badge&logo=clockify&logoColor=white" />
+  <img src="https://img.shields.io/badge/Cron_Engine-FF6F00?style=for-the-badge&logo=clockify&logoColor=white" />
 </p>
 
-### 📲 Mobile, Real-time & Nền Tảng Đám Mây
+### 📲 Mobile, Real-Time & Cloud
 <p>
   <img src="https://img.shields.io/badge/Capacitor-119EFF?style=for-the-badge&logo=capacitor&logoColor=white" />
   <img src="https://img.shields.io/badge/Web_Audio_API-9B51E0?style=for-the-badge&logo=audio&logoColor=white" />
@@ -90,34 +92,37 @@ Xin chào! Tôi là **Trần Võ Anh Kiệt**, một kỹ sư phần mềm Full-
 
 ---
 
-## 🎯 Dự Án Tiêu Biểu: DealPing FlashSale
+## 🤝 Collaborative & Team Ventures (Dự Án Đồng Phát Triển Cùng Bạn Bè)
+
+> 👥 **Team Project**: *Dự án dưới đây được nghiên cứu, thiết kế và phát triển cùng bạn đồng hành trong khuôn khổ môn học **Khởi Nghiệp Đổi Mới Sáng Tạo (EXE101 — FA26)** tại **Trường Đại học FPT**.*
 
 <div align="center">
 
-### [⚡ DealPing — Hệ Thống Radar Săn Deal Đáy 24/7](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
-*Giải pháp giám sát biến động giá sàn thương mại điện tử và kích hoạt chuông báo khẩn cấp tức thì.*
+### [⚡ DealPing — Flash Sale Price Tracker & Real-Time Radar](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
+*An intelligent cross-platform solution to track price drops on Shopee, TikTok Shop & Lazada, waking up devices with emergency siren alarms.*
 
 <br/>
 
 ```mermaid
 flowchart LR
-    A[🛒 Sàn Shopee / TikTok / Lazada] -->|Cron Quét Tự Động| B[⚙️ DealPing Backend & Prisma]
-    B -->|Phát Hiện Sập Giá| C[🚨 Còi Hú Web Audio & Web Push]
-    C -->|Đánh Thức Màn Hình| D[📱 Người Dùng Chốt Đơn Đáy]
+    A[🛒 E-Commerce Platforms Shopee/TikTok/Lazada] -->|Automated Cron Poller| B[⚙️ DealPing Backend & Prisma]
+    B -->|Detect Price Drop Below Target| C[🚨 Web Audio Synthesizer & Web Push]
+    C -->|Wake Device & Alert User| D[📱 Users Catch Bottom Deals]
 ```
 
 </div>
 
-- 📡 **Multi-Platform Radar**: Tự động bóc tách link sản phẩm Shopee (dài + rút gọn), TikTok Shop, Lazada.
-- 🚨 **Báo động sập giá đa tầng**: Còi hú Web Audio Synthesizer, Dynamic Island Banner iOS và Web Push W3C đánh thức điện thoại khi tắt màn hình.
-- 🫧 **Gamification**: Mini-game nổ bong bóng deal mở khóa ô theo dõi thứ 2.
-- 📦 **Tech Stack**: React 19, TypeScript, Node.js 20, PostgreSQL, Prisma ORM, TailwindCSS 4.
+- 👥 **Team Synergy**: Dự án được hợp tác đồng phát triển bởi nhóm 2 thành viên, kết hợp giữa tư duy thiết kế sản phẩm và kỹ thuật lập trình Full-Stack.
+- 📡 **Multi-Platform Link Resolver**: Bóc tách link sản phẩm từ Shopee (link thường + rút gọn), TikTok Shop và Lazada, trích xuất hình ảnh CDN và giá khuyến mãi thực tế.
+- 🚨 **Multi-Tier Alarm Engine**: Còi hú Web Audio Synthesizer dồn dập, Dynamic Island Banner iOS và thông báo nền Web Push W3C đánh thức điện thoại cả khi khóa màn hình.
+- 🫧 **Interactive Gamification**: Trò chơi nổ bong bóng deal mở khóa ô theo dõi thứ 2 với hiệu ứng vật lý sinh động.
+- 🛠️ **Tech Stack**: React 19, TypeScript, Node.js 20, PostgreSQL, Prisma ORM, TailwindCSS 4, Web Audio API, Service Worker.
 
-👉 [Khám phá mã nguồn dự án DealPing tại đây](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
+👉 **[Xem chi tiết mã nguồn dự án DealPing](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)**
 
 ---
 
-## 📊 Thống Kê Hoạt Động GitHub
+## 📊 GitHub Analytics & Activity
 
 <div align="center">
 
@@ -132,7 +137,7 @@ flowchart LR
 
 ---
 
-## 📬 Kết Nối Với Tôi
+## 📬 Get In Touch
 
 <div align="center">
 
@@ -142,7 +147,7 @@ flowchart LR
 
 <br/>
 
-**⭐ Cảm ơn bạn đã ghé thăm trang cá nhân của tôi! Chúc bạn một ngày tràn đầy cảm hứng sáng tạo! ⭐**
+**⭐ Thank you for visiting my profile! Wishing you a productive and inspired day! ⭐**
 
 </div>
 ```
