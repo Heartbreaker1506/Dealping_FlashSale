@@ -35,7 +35,7 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
     const priceVal = product.price;
 
     if (product && (priceVal !== undefined || name)) {
-      const price = parseFloat(priceVal) || 0;
+      const price = parseFloat(product.flashSalePrice) || parseFloat(priceVal) || 0;
       const productName = name || "Sản phẩm Shopee";
       const imageUrl = product.imageUrl || product.image || product.image_url || null;
 
@@ -77,6 +77,7 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
 
       return {
         price: price,
+        currentPrice: price,
         originalPrice: originalPrice,
         productName: productName,
         imageUrl: imageUrl,
@@ -101,6 +102,8 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
         console.log(`[Shopee Fallback] Dùng data dự phòng cho itemId ${itemId}`);
         return {
           price: Number(cached.price) || 0,
+          currentPrice: Number(cached.price) || 0,
+          originalPrice: Number(cached.price) || 0,
           productName: cached.productName || "Đang cập nhật...",
           imageUrl: cached.imageUrl || null,
           isXtra: false,
@@ -122,6 +125,8 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
 function defaultFallback() {
   return {
     price: 0,
+    currentPrice: 0,
+    originalPrice: 0,
     productName: "Đang cập nhật...",
     imageUrl: null,
     isXtra: false,
@@ -153,18 +158,19 @@ async function fetchBatchPrices(itemIds) {
     });
     
     const data = response.data;
-    const items = data.data ? data.data : data;
+    const items = data.products || data.data || data;
     
     if (items) {
       // API có thể trả về mảng hoặc object key-value, xử lý cả 2
       const results = Array.isArray(items) ? items : Object.values(items);
-      for (const item of results) {
+      for (const entry of results) {
+        const item = entry?.productInfo || entry;
         // Có thể API dùng 'item_id' hoặc 'itemId'
-        const itemId = item.item_id || item.itemId;
+        const itemId = item?.item_id || item?.itemId || entry?.itemId || entry?.item_id;
         if (item && itemId) {
           const priceVal = item.price;
           const name = item.productName || item.name;
-          const price = parseFloat(priceVal) || 0;
+          const price = parseFloat(item.flashSalePrice) || parseFloat(priceVal) || 0;
           const productName = name || "Sản phẩm Shopee";
           const imageUrl = item.imageUrl || item.image || item.image_url || null;
           
@@ -178,6 +184,8 @@ async function fetchBatchPrices(itemIds) {
           
           resultMap[itemId.toString()] = {
             price: price,
+            currentPrice: price,
+            originalPrice: parseFloat(priceVal) || price,
             productName: productName,
             imageUrl: imageUrl,
             isXtra: false,
@@ -207,6 +215,8 @@ async function fetchBatchPrices(itemIds) {
       for (const cached of cachedItems) {
         resultMap[cached.itemId.toString()] = {
           price: Number(cached.price) || 0,
+          currentPrice: Number(cached.price) || 0,
+          originalPrice: Number(cached.price) || 0,
           productName: cached.productName || "Đang cập nhật...",
           imageUrl: cached.imageUrl || null,
           isXtra: false,
