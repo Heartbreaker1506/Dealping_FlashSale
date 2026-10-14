@@ -44,7 +44,7 @@ async function createTrackingItem({
 
   const currentCount = await prisma.trackingItem.count({ where: { userId } });
 
-  if (currentCount >= 2) {
+  if (currentCount >= 3) {
     const oldestItem = await prisma.trackingItem.findFirst({
       where: { userId },
       orderBy: { createdAt: 'asc' }

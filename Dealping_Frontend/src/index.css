@@ -126,9 +126,73 @@
   color: #0f172a;
 }
 .light-mode .apple-input {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
   color: #0f172a;
+}
+
+/* Đảm bảo chữ hướng dẫn, phụ đề và nội dung trong light mode luôn là màu đen/xám đậm rõ nét */
+.light-mode {
+  color: #0f172a;
+}
+.light-mode h1,
+.light-mode h2,
+.light-mode h3,
+.light-mode h4,
+.light-mode h5,
+.light-mode h6,
+.light-mode p,
+.light-mode span,
+.light-mode div,
+.light-mode label {
+  color: #0f172a;
+}
+
+.light-mode .text-white,
+.light-mode .text-white\/90,
+.light-mode .text-white\/80,
+.light-mode .text-white\/75,
+.light-mode .text-white\/70 {
+  color: #0f172a !important;
+}
+.light-mode .text-white\/60,
+.light-mode .text-white\/50,
+.light-mode .text-white\/40 {
+  color: #334155 !important;
+}
+
+/* Giữ nguyên chữ trắng cho các nút bấm gradient/màu sắc nổi bật */
+.light-mode .apple-glow-btn,
+.light-mode .apple-glow-btn *,
+.light-mode button[class*="bg-gradient-to"],
+.light-mode button[class*="bg-gradient-to"] *,
+.light-mode a[class*="bg-gradient-to"],
+.light-mode a[class*="bg-gradient-to"] *,
+.light-mode button[class*="apple-glow"],
+.light-mode button[class*="apple-glow"] *,
+.light-mode .bg-pink-500,
+.light-mode .bg-pink-500 *,
+.light-mode .bg-pink-600,
+.light-mode .bg-pink-600 *,
+.light-mode .bg-purple-600,
+.light-mode .bg-purple-600 *,
+.light-mode .bg-purple-500,
+.light-mode .bg-purple-500 *,
+.light-mode .bg-amber-500,
+.light-mode .bg-amber-500 *,
+.light-mode .bg-emerald-500,
+.light-mode .bg-emerald-500 *,
+.light-mode .bg-emerald-600,
+.light-mode .bg-emerald-600 *,
+.light-mode .bg-red-500,
+.light-mode .bg-red-500 *,
+.light-mode .bg-red-600,
+.light-mode .bg-red-600 *,
+.light-mode .bg-blue-600,
+.light-mode .bg-blue-600 *,
+.light-mode .bg-blue-500,
+.light-mode .bg-blue-500 * {
+  color: #ffffff !important;
 }
 
 /* Dark mode */

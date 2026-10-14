@@ -1074,6 +1074,8 @@ function SlotCard({
   statusLabel,
   lastCheckedText,
   advice,
+  slot3Unlocked,
+  onOpenFeedback,
 }: {
   slotNum: number
   label: string
@@ -1111,11 +1113,15 @@ function SlotCard({
   statusLabel?: string
   lastCheckedText?: string
   advice?: string
+  slot3Unlocked?: boolean
+  onOpenFeedback?: () => void
 }) {
   const isSlot1 = slotNum === 1
   const borderClass = isSlot1
-    ? "border-purple-400/30"
-    : "border-pink-500/70 border-2 bg-gradient-to-b from-pink-500/15 to-purple-500/10"
+    ? "border-purple-400/40 dark:border-purple-400/30"
+    : slotNum === 2
+      ? "border-pink-500/70 border-2 bg-gradient-to-b from-pink-500/15 to-purple-500/10"
+      : "border-amber-500/70 border-2 bg-gradient-to-b from-amber-500/15 to-rose-500/10"
 
   // 1. Tính toán giá Nấc 1 và Nấc 2 (chống lỗi Nấc 1 đắt hơn giá sàn)
   // Áp dụng công thức tổng quát cho mọi link từ ốp lưng 20k đến laptop 20 triệu
@@ -1268,14 +1274,13 @@ function SlotCard({
                   </div>
                 </div>
               )}
-              <div className="bg-black/5 rounded-[18px] p-2.5 text-[10px] space-y-2">
+              <div className="bg-slate-100/80 dark:bg-black/5 rounded-[18px] p-2.5 text-[10px] space-y-2 border border-slate-200/60 dark:border-transparent">
                 <div className="flex justify-between items-center mb-0.5">
-                  <span className="font-bold opacity-80 text-[10px]">
+                  <span className="font-bold text-slate-800 dark:text-white/80 text-[10px]">
                     🎯 Chọn nấc giảm giá món {slotNum}:
                   </span>
                   <span
-                    className={`font-black text-[10px] ${isSlot1 ? "text-purple-400" : "text-pink-400"
-                      }`}
+                    className={`font-black text-[10px] ${isSlot1 ? "text-purple-600 dark:text-purple-400" : (slotNum === 2 ? "text-pink-600 dark:text-pink-400" : "text-amber-600 dark:text-amber-400")}`}
                   >
                     Giảm -{discountPct}%
                   </span>
@@ -1294,36 +1299,36 @@ function SlotCard({
                     }}
                     className={`p-2 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
                       isTier1Active
-                        ? "bg-amber-500/20 border-amber-400/80 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)] ring-1 ring-amber-400/50"
-                        : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30 hover:border-white/20"
+                        ? "bg-amber-500/20 border-amber-500 text-amber-900 dark:text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)] ring-1 ring-amber-400/50"
+                        : "bg-white/80 dark:bg-black/20 border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-white/70 hover:bg-white dark:hover:bg-black/30 hover:border-slate-400 dark:hover:border-white/20 shadow-xs"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-[10px] font-black flex items-center space-x-1">
+                      <span className="text-[10px] font-black flex items-center space-x-1 text-slate-900 dark:text-white">
                         <span>⚡</span>
                         <span>{isFlashSaleNow ? `Nấc 1: Flash Sale (-${discountPercent}%)` : "Nấc 1: -10%"}</span>
                       </span>
                       {isTier1Active && (
-                        <span className="text-[8px] bg-amber-400/30 text-amber-200 px-1 rounded font-bold">
+                        <span className="text-[8px] bg-amber-400/30 text-amber-800 dark:text-amber-200 px-1 rounded font-bold">
                           ✓ Chọn
                         </span>
                       )}
                     </div>
-                    <p className="text-[8.5px] text-white/60 mt-1 leading-tight">
+                    <p className="text-[8.5px] text-slate-700 dark:text-white/60 mt-1 leading-tight">
                       {isFlashSaleNow ? (
                         <>
                           Giá Flash Sale đang có (-{discountPercent}%)<br />
-                          <span className="text-amber-300/90 font-medium">{nac1_sublabel}</span>
+                          <span className="text-amber-700 dark:text-amber-300/90 font-bold">{nac1_sublabel}</span>
                         </>
                       ) : (
                         <>
                           Giảm nhẹ 10%<br />
-                          <span className="text-amber-300/90 font-medium">{nac1_sublabel}</span>
+                          <span className="text-amber-700 dark:text-amber-300/90 font-bold">{nac1_sublabel}</span>
                         </>
                       )}
                     </p>
                     {nac1_price && (
-                      <span className="text-[9px] font-bold text-amber-300 mt-1">
+                      <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 mt-1">
                         ~ {formatVND(nac1_price)}
                       </span>
                     )}
@@ -1339,27 +1344,27 @@ function SlotCard({
                     }}
                     className={`p-2 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
                       isTier2Active
-                        ? "bg-emerald-500/25 border-emerald-400/90 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400/60"
-                        : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30 hover:border-white/20"
+                        ? "bg-emerald-500/25 border-emerald-500 text-emerald-950 dark:text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400/60"
+                        : "bg-white/80 dark:bg-black/20 border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-white/70 hover:bg-white dark:hover:bg-black/30 hover:border-slate-400 dark:hover:border-white/20 shadow-xs"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-[10px] font-black text-emerald-300 flex items-center space-x-1">
+                      <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 flex items-center space-x-1">
                         <span>🔥</span>
                         <span>Nấc 2: -28% Đại Sale</span>
                       </span>
                       {isTier2Active && (
-                        <span className="text-[8px] bg-emerald-400/30 text-emerald-200 px-1 rounded font-bold">
+                        <span className="text-[8px] bg-emerald-400/30 text-emerald-800 dark:text-emerald-200 px-1 rounded font-bold">
                           ⭐ Gợi ý
                         </span>
                       )}
                     </div>
-                    <p className="text-[8.5px] font-bold text-emerald-200 mt-1 leading-tight">
+                    <p className="text-[8.5px] font-bold text-emerald-800 dark:text-emerald-200 mt-1 leading-tight">
                       Chế độ "Mua Chậm Giá Hời"<br />
-                      <span className="text-emerald-300/80 font-normal text-[8px]">(Canh đợt đại sale giảm sâu 28%)</span>
+                      <span className="text-emerald-700 dark:text-emerald-300/80 font-normal text-[8px]">(Canh đợt đại sale giảm sâu 28%)</span>
                     </p>
                     {nac2_price && (
-                      <span className="text-[9px] font-black text-emerald-300 mt-1">
+                      <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 mt-1">
                         ~ {formatVND(nac2_price)}
                       </span>
                     )}
@@ -1367,7 +1372,7 @@ function SlotCard({
                 </div>
 
                 {/* Ghi chú Nấc 2: Dự kiến chờ 2 - 4 ngày để rình đợt Sale lớn */}
-                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-300 flex items-start space-x-1.5">
+                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-800 dark:text-emerald-300 flex items-start space-x-1.5">
                   <span className="text-[11px] shrink-0">👉</span>
                   <span className="leading-tight font-medium">
                     <b>Dự kiến chờ 2 - 4 ngày để rình đợt Sale lớn</b> (Chế độ "Mua Chậm Giá Hời").
@@ -1376,10 +1381,10 @@ function SlotCard({
 
                 {/* Tinh chỉnh giá mong muốn */}
                 <div>
-                  <div className="flex justify-between items-center mb-1 text-[9px] text-white/60">
+                  <div className="flex justify-between items-center mb-1 text-[9px] text-slate-700 dark:text-white/60 font-semibold">
                     <span>Hoặc tinh chỉnh số tiền cụ thể:</span>
                     {currentPrice > 0 && (
-                      <span>Giá sàn: {formatVND(currentPrice)}</span>
+                      <span className="text-slate-800 dark:text-white/80 font-bold">Giá sàn: {formatVND(currentPrice)}</span>
                     )}
                   </div>
                   <div className="relative mb-1.5 flex items-center">
@@ -1392,14 +1397,14 @@ function SlotCard({
                         )
                       }
                       placeholder="Nhập giá mong muốn"
-                      className="w-full bg-black/10 text-current text-xs font-bold rounded-lg pl-2.5 pr-7 py-1.5 border border-current/20 focus:outline-none"
+                      className="w-full bg-white dark:bg-black/10 text-slate-900 dark:text-white text-xs font-bold rounded-lg pl-2.5 pr-7 py-1.5 border border-slate-300 dark:border-white/20 focus:outline-none"
                     />
-                    <span className="absolute right-2.5 text-xs font-bold opacity-60 pointer-events-none">đ</span>
+                    <span className="absolute right-2.5 text-xs font-bold text-slate-500 dark:text-white/60 pointer-events-none">đ</span>
                   </div>
                 </div>
-                <div className="pt-1.5 border-t border-current/10">
+                <div className="pt-1.5 border-t border-slate-200 dark:border-white/10">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold opacity-80 text-[10px]">
+                    <span className="font-bold text-slate-800 dark:text-white/80 text-[10px]">
                       Phân loại cần săn:
                     </span>
                     <span className={`font-bold text-[9px] ${accentActive}`}>
@@ -1419,8 +1424,8 @@ function SlotCard({
                             onClick={() => onVariantSelect(optVal, optPrice)}
                             className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all flex items-center space-x-1 ${
                               isSelected 
-                                ? 'bg-pink-500/20 border-pink-500 text-pink-400 scale-105 shadow-md' 
-                                : 'bg-black/20 border-transparent text-white/70 hover:bg-black/30 hover:scale-105'
+                                ? 'bg-pink-500/20 border-pink-500 text-pink-500 dark:text-pink-400 scale-105 shadow-md' 
+                                : 'bg-white/80 dark:bg-black/20 border-slate-200 dark:border-transparent text-slate-800 dark:text-white/70 hover:bg-white dark:hover:bg-black/30 hover:scale-105'
                             }`}
                           >
                             <span>🔘</span>
@@ -1436,7 +1441,7 @@ function SlotCard({
                           value={variant}
                           onChange={(e) => onVariantSelect(e.target.value)}
                           placeholder="Nhập màu, size (VD: Đen - Size M)"
-                          className="w-full bg-black/10 text-current text-xs font-bold rounded-lg px-2 py-2 border border-current/20 focus:outline-none"
+                          className="w-full bg-white dark:bg-black/10 text-slate-900 dark:text-white text-xs font-bold rounded-lg px-2 py-2 border border-slate-300 dark:border-white/20 focus:outline-none"
                         />
                         <datalist id={`variant-opts-${slotNum}`}>
                           {variantOptions && variantOptions.map((opt: any, idx: number) => {
@@ -1451,15 +1456,14 @@ function SlotCard({
                 </div>
                 <div className="flex space-x-1 mt-2">
                   <span
-                    className={`px-2 py-0.5 rounded-md ${isSlot1 ? "bg-purple-600" : "bg-pink-500"
-                      } text-white font-bold text-[9px]`}
+                    className={`px-2 py-0.5 rounded-md ${isSlot1 ? "bg-purple-600" : (slotNum === 2 ? "bg-pink-500" : "bg-amber-500")} text-white font-bold text-[9px]`}
                   >
-                    ⭐ 4.{isSlot1 ? "8" : "9"}+
+                    ⭐ 4.{isSlot1 ? "8" : (slotNum === 2 ? "9" : "9")}+
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-black/10 text-[9px]">
+                  <span className="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-black/10 text-slate-800 dark:text-white text-[9px] font-semibold">
                     Mall
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-black/10 text-[9px]">
+                  <span className="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-black/10 text-slate-800 dark:text-white text-[9px] font-semibold">
                     Freeship
                   </span>
                 </div>
@@ -1473,7 +1477,9 @@ function SlotCard({
                   ? "⏳ Radar đang kết nối sàn (~15s)..."
                   : slotNum === 1
                     ? "🔔 Bật Radar / Săn Deal"
-                    : "🔔 Kích Hoạt Theo Dõi Món 2"}
+                    : slotNum === 2
+                      ? "🔔 Kích Hoạt Theo Dõi Món 2"
+                      : "🔔 Kích Hoạt Theo Dõi Món 3"}
               </button>
             </div>
           )}
@@ -1507,11 +1513,11 @@ function SlotCard({
                 {productPrice} | <b className={accentActive}>{variant}</b>
               </p>
               <div className="flex items-center space-x-1.5 mt-0.5 overflow-hidden">
-                <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap shrink-0">
+                <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                   <span>{statusLabel || "Đang rình giá"}</span>
                 </span>
-                <span className="text-[8px] text-white/50 whitespace-nowrap truncate">
+                <span className="text-[8px] text-slate-600 dark:text-white/50 whitespace-nowrap truncate">
                   • {lastCheckedText || "Vừa xong"}
                 </span>
               </div>
@@ -1520,7 +1526,7 @@ function SlotCard({
           <div className="flex items-center space-x-1 shrink-0">
             <button
               onClick={onViewDetails}
-              className="px-2 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 text-[9px] font-bold active:scale-95 transition cursor-pointer flex items-center space-x-0.5 border border-sky-500/30"
+              className="px-2 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-600 dark:text-sky-400 text-[9px] font-bold active:scale-95 transition cursor-pointer flex items-center space-x-0.5 border border-sky-500/30"
               title="Xem chi tiết đơn hàng, hình ảnh & giá săn"
             >
               <span>ℹ️ Chi tiết</span>
@@ -1531,13 +1537,13 @@ function SlotCard({
                 if (!buyUrl.startsWith("http")) buyUrl = `https://${buyUrl}`
                 window.open(buyUrl, "_blank", "noopener,noreferrer")
               }}
-              className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[9px] font-bold active:scale-95 transition cursor-pointer flex items-center space-x-0.5 border border-emerald-500/30"
+              className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[9px] font-bold active:scale-95 transition cursor-pointer flex items-center space-x-0.5 border border-emerald-500/30"
             >
               <span>🛒 Mua</span>
             </button>
             <button
               onClick={onRemove}
-              className="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/30 text-red-400 text-[9px] font-bold active:scale-95 transition cursor-pointer border border-red-500/20"
+              className="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/30 text-red-600 dark:text-red-400 text-[9px] font-bold active:scale-95 transition cursor-pointer border border-red-500/20"
             >
               🗑️ Đổi
             </button>
@@ -1545,15 +1551,15 @@ function SlotCard({
           </div>
 
           {/* Bot Advice Banner */}
-          <div className="mt-2 bg-black/20 rounded-xl px-2.5 py-1.5 border border-white/5 flex items-center space-x-1.5 text-[9px] text-yellow-200/90">
+          <div className="mt-2 bg-amber-500/10 dark:bg-black/20 rounded-xl px-2.5 py-1.5 border border-amber-500/20 dark:border-white/5 flex items-center space-x-1.5 text-[9px] text-amber-900 dark:text-yellow-200/90">
             <span>💡</span>
-            <span className="truncate italic">{advice || "Giá vẫn neo cao, khuyên chưa nên mua vội"}</span>
+            <span className="truncate italic font-medium">{advice || "Giá vẫn neo cao, khuyên chưa nên mua vội"}</span>
           </div>
           
           {/* Nhịp tim Radar & Thông điệp Mua Chậm Giá Hời ngay dưới thẻ món hàng */}
-          <div className="mt-2.5 pt-2 border-t border-white/10 space-y-1.5">
+          <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-white/10 space-y-1.5">
             {/* Dòng nhỏ có chấm xanh lá nhấp nháy */}
-            <div className="flex items-center space-x-2 text-[9.5px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-2.5 py-1.5 shadow-sm">
+            <div className="flex items-center space-x-2 text-[9.5px] font-semibold text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-2.5 py-1.5 shadow-sm">
               <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
@@ -1564,12 +1570,33 @@ function SlotCard({
             </div>
 
             {/* Thông điệp Mua Chậm Giá Hời */}
-            <div className="flex items-start space-x-1.5 text-[8.5px] text-white/75 bg-purple-500/10 border border-purple-500/20 rounded-xl px-2.5 py-1.5">
+            <div className="flex items-start space-x-1.5 text-[8.5px] text-slate-800 dark:text-white/75 bg-purple-500/10 border border-purple-500/20 rounded-xl px-2.5 py-1.5">
               <span className="shrink-0 text-[10px]">🛡️</span>
               <span className="leading-tight">
-                <b className="text-purple-300 font-bold">Khi bot im lặng</b> = Tiền bạn an toàn trong túi. <span className="text-pink-300 font-bold">Mua chậm một nhịp, tiết kiệm một nửa!</span>
+                <b className="text-purple-700 dark:text-purple-300 font-bold">Khi bot im lặng</b> = Tiền bạn an toàn trong túi. <span className="text-pink-700 dark:text-pink-300 font-bold">Mua chậm một nhịp, tiết kiệm một nửa!</span>
               </span>
             </div>
+
+            {/* Thông báo hướng dẫn mở khóa Ô #3 sau khi hoàn thành theo dõi */}
+            {!slot3Unlocked && (
+              <div className="flex items-center justify-between text-[9px] bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-purple-500/15 border border-amber-400/40 rounded-xl px-2.5 py-1.5 shadow-xs">
+                <div className="flex items-center space-x-1.5 min-w-0 pr-1">
+                  <span className="text-xs shrink-0">🎁</span>
+                  <span className="text-slate-800 dark:text-white/90 truncate font-medium">
+                    Đã bật theo dõi! Vào <b>Menu (☰)</b> đánh giá để nhận <b>Ô #3</b>
+                  </span>
+                </div>
+                {onOpenFeedback && (
+                  <button
+                    onClick={onOpenFeedback}
+                    className="text-amber-700 dark:text-amber-300 font-black shrink-0 hover:underline cursor-pointer flex items-center space-x-0.5 ml-1"
+                  >
+                    <span>Mở ngay</span>
+                    <span>➔</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Price Badges & Chart */}
@@ -1663,6 +1690,16 @@ export default function App() {
   const [isAnalyzingChart, setIsAnalyzingChart] = useState(false)
   const [analyzedCharts, setAnalyzedCharts] = useState<any[]>([])
 
+  // Tracked state history (đang theo dõi hoặc từng theo dõi)
+  const [hasEverTracked, setHasEverTracked] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("dealping_has_tracked") === "true" ||
+        (Boolean(localStorage.getItem("dealping_tracked_items")) && JSON.parse(localStorage.getItem("dealping_tracked_items") || "[]").length > 0)
+    } catch {
+      return false
+    }
+  })
+
   // Wishlist View State
   const [wishlistItems, setWishlistItems] = useState<any[]>([])
   const [wishlistLoading, setWishlistLoading] = useState(false)
@@ -1674,12 +1711,18 @@ export default function App() {
       fetch(`${cleanApiUrl}/api/tracking-items?userId=${getUserId()}`)
         .then(res => res.json())
         .then(data => {
+          let items: any[] = []
           if (data && (data.status === 'success' || data.success === true)) {
-            setWishlistItems(data.data || [])
+            items = data.data || []
           } else if (Array.isArray(data)) {
-            setWishlistItems(data)
+            items = data
           } else if (data && data.data && Array.isArray(data.data)) {
-            setWishlistItems(data.data)
+            items = data.data
+          }
+          setWishlistItems(items)
+          if (items.length > 0) {
+            setHasEverTracked(true)
+            try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
           }
         })
         .catch(err => console.error("Lỗi tải wishlist:", err))
@@ -1754,6 +1797,44 @@ export default function App() {
   const [slot2LastChecked, setSlot2LastChecked] = useState<string>("5 phút trước")
   const [slot2Status, setSlot2Status] = useState<string>("Đang rình giá")
   const [slot2Advice, setSlot2Advice] = useState<string>("Giá vẫn neo cao, khuyên chưa nên mua vội")
+
+  // Slot 3 (Feedback reward unlock)
+  const [slot3ItemId, setSlot3ItemId] = useState<string | null>(null)
+  const [slot3Unlocked, setSlot3Unlocked] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("dealping_slot3_unlocked") === "true"
+    } catch {
+      return false
+    }
+  })
+  const [slot3Input, setSlot3Input] = useState("")
+  const [slot3Expanded, setSlot3Expanded] = useState(false)
+  const [slot3Active, setSlot3Active] = useState(false)
+  const [slot3Variant, setSlot3Variant] = useState("Tất cả phân loại (Mặc định)")
+  const [slot3VariantOpts, setSlot3VariantOpts] = useState<any[]>([])
+  const [slot3TargetPrice, setSlot3TargetPrice] = useState("")
+  const [slot3ProductName, setSlot3ProductName] = useState("")
+  const [slot3ProductPrice, setSlot3ProductPrice] = useState("")
+  const [slot3PreviewName, setSlot3PreviewName] = useState("")
+  const [slot3PreviewPrice, setSlot3PreviewPrice] = useState("")
+  const [slot3BasePrice, setSlot3BasePrice] = useState<number>(0)
+  const [slot3OriginalPrice, setSlot3OriginalPrice] = useState<number>(0)
+  const [slot3VoucherPrice, setSlot3VoucherPrice] = useState<number | null>(null)
+  const [slot3ImageUrl, setSlot3ImageUrl] = useState<string | null>(null)
+  const [slot3AffiliateUrl, setSlot3AffiliateUrl] = useState<string | null>(null)
+  const [slot3PreviewLoading, setSlot3PreviewLoading] = useState(false)
+  const [slot3Sending, setSlot3Sending] = useState(false)
+  const [slot3LastChecked, setSlot3LastChecked] = useState<string>("5 phút trước")
+  const [slot3Status, setSlot3Status] = useState<string>("Đang rình giá")
+  const [slot3Advice, setSlot3Advice] = useState<string>("Giá vẫn neo cao, khuyên chưa nên mua vội")
+
+  // Feedback feature states
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [showSlot3Modal, setShowSlot3Modal] = useState(false)
+  const [feedbackRating, setFeedbackRating] = useState(5)
+  const [feedbackText, setFeedbackText] = useState("")
+  const [feedbackContact, setFeedbackContact] = useState("")
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false)
 
   // Track which slot was last interacted with for alarm & calculations
   const [lastActiveSlot, setLastActiveSlot] = useState<number>(1)
@@ -2420,6 +2501,8 @@ export default function App() {
       }
 
       if (items.length > 0) {
+        setHasEverTracked(true)
+        try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
         if (items[0]) {
           setSlot1ItemId(items[0].id)
           setSlot1Input(items[0].shopeeUrl || items[0].productUrl || items[0].url || "")
@@ -2453,6 +2536,23 @@ export default function App() {
           setSlot2BubbleUnlocked(true)
           setSlot2Active(true)
         }
+        if (items[2]) {
+          setSlot3ItemId(items[2].id)
+          setSlot3Input(items[2].shopeeUrl || items[2].productUrl || items[2].url || "")
+          setSlot3ProductName(items[2].productName || "Món 3 đang theo dõi")
+          setSlot3ProductPrice(items[2].targetPrice ? formatVND(items[2].targetPrice) : "")
+          if (items[2].targetPrice) {
+            setSlot3TargetPrice(formatInputNumber(items[2].targetPrice))
+          }
+          if (items[2].originalPrice) setSlot3BasePrice(Number(items[2].originalPrice))
+          if (items[2].variantName) setSlot3Variant(items[2].variantName)
+          if (items[2].imageUrl) setSlot3ImageUrl(items[2].imageUrl)
+          if (items[2].lastCheckedAgo || items[2].lastCheckedText) setSlot3LastChecked(items[2].lastCheckedAgo || items[2].lastCheckedText)
+          if (items[2].statusLabel) setSlot3Status(items[2].statusLabel)
+          if (items[2].advice) setSlot3Advice(items[2].advice)
+          setSlot3Unlocked(true)
+          setSlot3Active(true)
+        }
       }
     }
     loadSavedItems()
@@ -2470,6 +2570,7 @@ export default function App() {
             if (isHit && item.id && !alertedItemIdsRef.current.has(item.id)) {
               alertedItemIdsRef.current.add(item.id)
 
+              const isSlot3Item = slot3ItemId === item.id
               const isSlot2Item = slot2ItemId === item.id
               const targetP = item.targetPrice ? Number(item.targetPrice) : 0
               const origP = item.originalPrice ? Number(item.originalPrice) : Math.round(targetP * 1.3)
@@ -2485,12 +2586,15 @@ export default function App() {
                 flashSalePrice: targetP,
                 imageUrl: item.imageUrl || null,
                 affiliateUrl: item.affiliateUrl || item.shopeeUrl || item.productUrl,
-                slotNum: isSlot2Item ? 2 : 1,
+                slotNum: isSlot3Item ? 3 : (isSlot2Item ? 2 : 1),
                 platformBadge: isTikTok ? "TIKTOK SHOP - SẬP GIÁ" : isLazada ? "LAZADA - SẬP GIÁ" : "SHOPEE - ĐÃ CHẠM GIÁ MONG MUỐN",
                 discountCodes: [],
               })
 
-              if (isSlot2Item) {
+              if (isSlot3Item) {
+                setSlot3Status("Đã sập giá")
+                setSlot3Advice("Giá đã chạm đáy mục tiêu, nên mua ngay kẻo lỡ!")
+              } else if (isSlot2Item) {
                 setSlot2Status("Đã sập giá")
                 setSlot2Advice("Giá đã chạm đáy mục tiêu, nên mua ngay kẻo lỡ!")
               } else {
@@ -2505,7 +2609,7 @@ export default function App() {
 
     const pollInterval = setInterval(checkPriceDropRealtime, 8000)
     return () => clearInterval(pollInterval)
-  }, [registerDeviceToken, triggerPriceDropAlarm, slot1ItemId, slot2ItemId])
+  }, [registerDeviceToken, triggerPriceDropAlarm, slot1ItemId, slot2ItemId, slot3ItemId])
 
   useEffect(() => {
     if (slot1Input.length > 10 && slot1Input.startsWith("http") && slot1Expanded && !slot1Active) {
@@ -2631,6 +2735,68 @@ export default function App() {
   }, [slot2Input, slot2Expanded, slot2Active])
 
   useEffect(() => {
+    if (slot3Input.length > 10 && slot3Input.startsWith("http") && slot3Expanded && !slot3Active) {
+      let isSubscribed = true
+      setSlot3PreviewLoading(true)
+      fetchPreview(slot3Input)
+        .then(data => {
+          if (isSubscribed) {
+            const pName = data.productName && !data.productName.includes("Không thể lấy") && !data.productName.includes("Could not get")
+              ? data.productName
+              : extractCleanProductName(slot3Input)
+            setSlot3PreviewName(pName)
+
+            const rawPrice = Number(data.price) || Number(data.currentPrice) || 0
+            const origPrice = Number(data.originalPrice) || Number(data.original_price) || rawPrice
+            setSlot3BasePrice(rawPrice)
+            setSlot3OriginalPrice(origPrice)
+            setSlot3PreviewPrice(formatVND(rawPrice))
+
+            if (data.voucherPrice) {
+              setSlot3VoucherPrice(Number(data.voucherPrice))
+            } else {
+              setSlot3VoucherPrice(null)
+            }
+
+            if (data.imageUrl) setSlot3ImageUrl(data.imageUrl)
+            if (data.affiliateUrl || data.offerLink) setSlot3AffiliateUrl(data.affiliateUrl || data.offerLink)
+
+            // Tự động tính giá mong muốn Ô 3 (Mặc định Nấc 2: Mua Chậm Giá Hời -28%)
+            const validOrig3 = Math.max(origPrice, rawPrice)
+            const rawNac2_3 = validOrig3 >= 1000 ? Math.round((validOrig3 * 0.72) / 1000) * 1000 : Math.round(validOrig3 * 0.72)
+            const autoTarget3 = (rawPrice > 0 && rawNac2_3 >= rawPrice)
+              ? Math.min(rawNac2_3, Math.round((rawPrice * 0.85) / 1000) * 1000 || Math.round(rawPrice * 0.85))
+              : rawNac2_3
+            setSlot3TargetPrice(formatInputNumber(autoTarget3))
+
+            if (data.variants && Array.isArray(data.variants)) {
+              const opts = data.variants;
+              if (opts.length > 0) {
+                setSlot3VariantOpts(opts)
+                const firstVal = typeof opts[0] === 'string' ? opts[0] : (opts[0].name || opts[0].value || (Array.isArray(opts[0]) ? opts[0][0] : ''));
+                setSlot3Variant(firstVal)
+              }
+            }
+          }
+        })
+        .catch(() => {
+          if (isSubscribed) {
+            const fallbackName = extractCleanProductName(slot3Input)
+            setSlot3PreviewName(fallbackName)
+            setSlot3BasePrice(0)
+            setSlot3OriginalPrice(0)
+            setSlot3PreviewPrice("")
+            setSlot3TargetPrice("")
+          }
+        })
+        .finally(() => {
+          if (isSubscribed) setSlot3PreviewLoading(false)
+        })
+      return () => { isSubscribed = false }
+    }
+  }, [slot3Input, slot3Expanded, slot3Active])
+
+  useEffect(() => {
     const iv = setInterval(spawnBubble, 1200)
     return () => clearInterval(iv)
   }, [spawnBubble])
@@ -2681,14 +2847,72 @@ export default function App() {
     setSpotlightStep("none")
   }, [])
 
-  const activeCount = (slot1Active ? 1 : 0) + (slot2Active ? 1 : 0)
-  const slotIndicator = slot2BubbleUnlocked
-    ? `${Math.max(maxSlots, 2)} / ${Math.max(maxSlots, 2)} Món`
-    : `1 / ${Math.max(maxSlots, 1)} Món`
+  const activeCount = (slot1Active ? 1 : 0) + (slot2Active ? 1 : 0) + (slot3Active ? 1 : 0)
+  const slotIndicator = slot3Unlocked
+    ? "3 / 3 Món"
+    : slot2BubbleUnlocked
+      ? "2 / 2 Món"
+      : "1 / 1 Món"
   const themeClass = isDark ? "dark-mode" : "light-mode"
 
-  const [slot1VariantOpts, setSlot1VariantOpts] = useState<any[]>([])
+  // Điều kiện để được đánh giá & góp ý:
+  // Người dùng đang theo dõi ít nhất 1 món HOẶC trong lịch sử đã từng theo dõi món đồ nào đó
+  const hasActiveTrack = Boolean(slot1Active || slot2Active || slot3Active || activeCount > 0)
+  const hasTrackHistory = Boolean(
+    hasEverTracked ||
+    wishlistItems.length > 0 ||
+    (typeof window !== "undefined" && (
+      localStorage.getItem("dealping_has_tracked") === "true" ||
+      (localStorage.getItem("dealping_tracked_items") && JSON.parse(localStorage.getItem("dealping_tracked_items") || "[]").length > 0)
+    ))
+  )
+  const canLeaveFeedback = Boolean(hasActiveTrack || hasTrackHistory)
 
+  // Xử lý gửi góp ý để mở khóa Slot 3
+  const handleSendFeedback = async () => {
+    if (!feedbackText.trim()) {
+      showToast("⚠️ Vui lòng nhập ý kiến", "Hãy chia sẻ 1 chút cảm nghĩ hoặc tính năng bạn muốn DealPing bổ sung nhé!", "✍️")
+      return
+    }
+
+    setIsSendingFeedback(true)
+    try {
+      const cleanApiUrl = API_URL.replace(/\/$/, "")
+      await fetch(`${cleanApiUrl}/api/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: getUserId(),
+          rating: feedbackRating,
+          feedback: feedbackText.trim(),
+          contact: feedbackContact.trim(),
+        }),
+      }).catch(() => {})
+    } catch (e) {
+      // network errors ignored
+    } finally {
+      setIsSendingFeedback(false)
+      setSlot3Unlocked(true)
+      try {
+        localStorage.setItem("dealping_slot3_unlocked", "true")
+        const existing = JSON.parse(localStorage.getItem("dealping_user_feedbacks") || "[]")
+        existing.push({
+          date: new Date().toISOString(),
+          rating: feedbackRating,
+          feedback: feedbackText.trim(),
+          contact: feedbackContact.trim(),
+        })
+        localStorage.setItem("dealping_user_feedbacks", JSON.stringify(existing))
+      } catch (e) {}
+
+      setShowFeedbackModal(false)
+      setShowSlot3Modal(true)
+      showToast("🎉 Phần thưởng Slot 3!", "Bạn đã mở khóa thành công Ô TÌM SỐ 3 đặc quyền!", "👑")
+      setLastActiveSlot(3)
+    }
+  }
+
+  const [slot1VariantOpts, setSlot1VariantOpts] = useState<any[]>([])
   const [slot2VariantOpts, setSlot2VariantOpts] = useState<any[]>([])
 
   // Variant selection — updates variant and preview price if price is available
@@ -2720,6 +2944,20 @@ export default function App() {
     }
   }
 
+  const handleSlot3VariantSelect = (v: string, price?: number) => {
+    setSlot3Variant(v)
+    if (price) {
+       setSlot3PreviewPrice(formatVND(price))
+       setSlot3BasePrice(price)
+       const validOrig = Math.max(slot3OriginalPrice || 0, price)
+       const rawNac2 = validOrig >= 1000 ? Math.round((validOrig * 0.72) / 1000) * 1000 : Math.round(validOrig * 0.72)
+       const autoTarget = (price > 0 && rawNac2 >= price)
+         ? Math.min(rawNac2, Math.round((price * 0.85) / 1000) * 1000 || Math.round(price * 0.85))
+         : rawNac2
+       setSlot3TargetPrice(formatInputNumber(autoTarget))
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0b0c12] flex items-center justify-center p-0 sm:p-4 select-none font-sans">
       <div className="w-full sm:w-98.25 h-screen sm:h-213 sm:rounded-[52px] p-0 sm:p-3 bg-gradient-to-b from-neutral-700 via-neutral-800 to-neutral-900 sm:shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_50px_rgba(124,58,237,0.3)] sm:border-4 sm:border-neutral-700 relative flex flex-col overflow-hidden">
@@ -2727,7 +2965,7 @@ export default function App() {
         {/* Phone Screen */}
         <div
           ref={phoneScreenRef}
-          className={`w-full h-full sm:rounded-[42px] overflow-hidden relative ${themeClass} ${isAlarmFlashing ? "alarm-pulsing-active" : ""} flex flex-col transition-colors duration-500`}
+          className={`w-full h-full sm:rounded-[42px] overflow-hidden relative ${themeClass} ${isDark ? "dark" : ""} ${isAlarmFlashing ? "alarm-pulsing-active" : ""} flex flex-col transition-colors duration-500`}
         >
           {/* BG Orbs */}
           <div
@@ -2830,10 +3068,14 @@ export default function App() {
             {/* Left: Light / Dark */}
             <button
               onClick={() => setIsDark(!isDark)}
-              className="pointer-events-auto flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-white/30 backdrop-blur border border-white/40 shadow-sm active:scale-95 transition-all cursor-pointer text-slate-800 dark:text-white"
+              className={`pointer-events-auto flex items-center space-x-1.5 px-2.5 py-1 rounded-full backdrop-blur border shadow-sm active:scale-95 transition-all cursor-pointer ${
+                isDark
+                  ? "bg-white/20 border-white/30 text-white"
+                  : "bg-white/90 border-slate-300 text-slate-900 shadow-slate-200"
+              }`}
             >
               <span className="text-[11px]">{isDark ? "🌙" : "☀️"}</span>
-              <span className="text-[9px] font-bold">
+              <span className={`text-[9px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                 {isDark ? "Dark" : "Light"}
               </span>
             </button>
@@ -2841,10 +3083,14 @@ export default function App() {
             {/* Center & Right: Only in Main View */}
             {(view as any) === "main" && (
               <>
-                <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-white/30 backdrop-blur text-[10px] font-black text-purple-600 dark:text-purple-400 border border-white/40 flex items-center space-x-1 shadow-sm">
-                  <span>Giới hạn:</span>
-                  <span className="font-bold text-pink-600 dark:text-pink-400">
-                    {slot2BubbleUnlocked ? "2 / 2 Món" : "1 / 1 Món"}
+                <div className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full backdrop-blur text-[10px] font-black border flex items-center space-x-1 shadow-sm ${
+                  isDark
+                    ? "bg-white/20 border-white/30 text-purple-300"
+                    : "bg-white/90 border-slate-300 text-purple-900 shadow-slate-200"
+                }`}>
+                  <span className={isDark ? "text-purple-300" : "text-slate-900"}>Giới hạn:</span>
+                  <span className={`font-bold ${isDark ? "text-pink-400" : "text-pink-600"}`}>
+                    {slot3Unlocked ? "3 / 3 Món" : (slot2BubbleUnlocked ? "2 / 2 Món" : "1 / 1 Món")}
                   </span>
                 </div>
 
@@ -2854,10 +3100,14 @@ export default function App() {
                     setSpotlightStep("none")
                     setView("welcome")
                   }}
-                  className="pointer-events-auto px-2.5 py-1 rounded-full bg-white/30 backdrop-blur text-[10px] font-bold border border-white/40 cursor-pointer active:scale-95 transition text-slate-800 dark:text-white shadow-sm flex items-center space-x-1"
+                  className={`pointer-events-auto px-2.5 py-1 rounded-full backdrop-blur text-[10px] font-black border cursor-pointer active:scale-95 transition shadow-sm flex items-center space-x-1 ${
+                    isDark
+                      ? "bg-white/20 border-white/30 text-white"
+                      : "bg-white/90 border-slate-300 text-slate-950 shadow-slate-200"
+                  }`}
                 >
-                  <span>Hướng dẫn</span>
-                  <span>→</span>
+                  <span className={isDark ? "text-white" : "text-slate-950 font-black"}>Hướng dẫn</span>
+                  <span className={isDark ? "text-white/70" : "text-slate-900 font-black"}>→</span>
                 </button>
               </>
             )}
@@ -3071,6 +3321,48 @@ export default function App() {
                         <Radio className={`w-4 h-4 ${(view as any) === "main" ? "text-sky-400" : "text-white/60"}`} />
                         <span className="text-xs">Radar Săn Deal</span>
                       </button>
+                      {/* Mục Đánh giá & Góp ý nhận quà Slot 3 */}
+                      <div className="h-px bg-white/10 my-1 mx-2" />
+                      {canLeaveFeedback ? (
+                        <button 
+                          onClick={() => { setShowFeedbackModal(true); setIsMenuOpen(false); }}
+                          className="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/10 text-amber-400 font-bold cursor-pointer text-left w-full"
+                        >
+                          <span className="text-base">⭐</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center space-x-1.5">
+                              <span className="text-xs">
+                                {slot3Unlocked ? "Đánh giá & Góp ý" : "Đánh giá nhận Ô #3"}
+                              </span>
+                              {!slot3Unlocked && (
+                                <span className="text-[8px] bg-red-500 text-white font-extrabold px-1.5 py-0.2 rounded-full animate-pulse">
+                                  HOT
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[8px] text-amber-300/70 truncate font-normal">
+                              {slot3Unlocked ? "Chia sẻ cảm nghĩ về app" : "Phần thưởng: Mở khóa Ô #3"}
+                            </p>
+                          </div>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            showToast("💡 Cần theo dõi 1 món", "Bạn hãy dán link và bật theo dõi ít nhất 1 sản phẩm trước khi đánh giá nhé!", "🔔")
+                            setIsMenuOpen(false)
+                          }}
+                          className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-white/5 text-white/40 cursor-pointer text-left w-full opacity-70"
+                          title="Cần theo dõi ít nhất 1 sản phẩm để mở khóa chức năng đánh giá"
+                        >
+                          <span className="text-base opacity-50">🔒</span>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs">Đánh giá nhận Ô #3</span>
+                            <p className="text-[8px] text-white/40 truncate font-normal">
+                              Cần theo dõi ít nhất 1 món
+                            </p>
+                          </div>
+                        </button>
+                      )}
                     </div>
                   )}
                   
@@ -3094,12 +3386,12 @@ export default function App() {
                   <div>
                     <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-amber-300">Săn Deal Siêu Tốc</h3>
                     <p className="text-[9px] opacity-75 font-semibold text-pink-500">
-                      Tối đa {Math.max(slot2BubbleUnlocked ? 2 : 1, maxSlots)} ô {slot2BubbleUnlocked ? "(Đã mở khóa)" : "(Chạm 10 bóng để mở Ô #2)"}
+                      Tối đa {Math.max(slot3Unlocked ? 3 : (slot2BubbleUnlocked ? 2 : 1), maxSlots)} ô {slot3Unlocked ? "(Đã mở khóa Ô #3)" : (slot2BubbleUnlocked ? "(Đã mở khóa Ô #2)" : "(Chạm 10 bóng để mở Ô #2)")}
                     </p>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-[9px] font-bold">
                     {activeCount}/
-                    {Math.max(slot2BubbleUnlocked ? 2 : 1, maxSlots)} ô
+                    {Math.max(slot3Unlocked ? 3 : (slot2BubbleUnlocked ? 2 : 1), maxSlots)} ô
                   </span>
                 </div>
 
@@ -3134,6 +3426,110 @@ export default function App() {
                 )}
 
                 <div className="space-y-2.5 flex-1">
+                  {/* Slot 3 */}
+                  {slot3Unlocked && (
+                    <SlotCard
+                      slotNum={3}
+                      label="👑 Ô TÌM SỐ 3 (VIP GÓP Ý)"
+                      labelClass="bg-gradient-to-r from-amber-500 to-rose-500 text-white"
+                      active={slot3Active}
+                      input={slot3Input}
+                      expanded={slot3Expanded}
+                      targetPrice={slot3TargetPrice}
+                      onTargetPriceChange={setSlot3TargetPrice}
+                      variant={slot3Variant}
+                      variantOptions={slot3VariantOpts}
+                      accentActive="text-amber-400"
+                      accentBtn="bg-amber-500"
+                      productEmoji="✨"
+                      productName={slot3ProductName}
+                      productPrice={slot3ProductPrice}
+                      basePrice={slot3BasePrice}
+                      originalPrice={slot3OriginalPrice}
+                      voucherPrice={slot3VoucherPrice}
+                      previewImage={slot3ImageUrl}
+                      productImage={slot3ImageUrl}
+                      affiliateUrl={slot3AffiliateUrl}
+                      statusLabel={slot3Status}
+                      lastCheckedText={slot3LastChecked}
+                      advice={slot3Advice}
+                      onViewDetails={() => setDetailModalSlot(3)}
+                      onInputChange={(v) => {
+                        setLastActiveSlot(3)
+                        setSlot3Input(v)
+                        setSlot3Expanded(v.length > 5)
+                      }}
+                      previewName={slot3PreviewName}
+                      previewPrice={slot3PreviewPrice}
+                      previewLoading={slot3PreviewLoading}
+                      loading={slot3Sending}
+                      onPaste={async () => {
+                        try {
+                          const text = await navigator.clipboard.readText()
+                          if (!text) {
+                            showToast("⚠️ Clipboard trống", "Hãy copy link sản phẩm trước.", "⚠️")
+                            return
+                          }
+                          setLastActiveSlot(3)
+                          const cleanUrl = extractUrlFromText(text)
+                          setSlot3Input(cleanUrl)
+                          setSlot3Expanded(cleanUrl.length > 5)
+                        } catch (error) {
+                          showToast("⚠️ Không thể đọc clipboard", "Hãy click vào ô nhập rồi nhấn Ctrl + V.", "⚠️")
+                        }
+                      }}
+                      onVariantSelect={handleSlot3VariantSelect}
+                      onActivate={async () => {
+                        if (!slot3Input.trim()) {
+                          showToast("⚠️ Chưa có link", "Hãy dán link sản phẩm trước!", "⚠️")
+                          return
+                        }
+                        setSlot3Sending(true)
+                        try {
+                          const result = await sendToBackend(
+                            slot3Input,
+                            parseVND(slot3TargetPrice),
+                            slot3Variant,
+                            slot3PreviewName || undefined,
+                            slot3ImageUrl || undefined,
+                          )
+                          if (result?.data?.id) setSlot3ItemId(result.data.id)
+                          const resolvedName = result?.data?.productName || result?.productName || slot3PreviewName || "Món 3 đang theo dõi"
+                          setSlot3ProductName(resolvedName)
+                          setSlot3ProductPrice(slot3TargetPrice)
+                          if (result?.data?.lastCheckedAgo || result?.data?.lastCheckedText) setSlot3LastChecked(result.data.lastCheckedAgo || result.data.lastCheckedText)
+                          if (result?.data?.statusLabel) setSlot3Status(result.data.statusLabel)
+                          if (result?.data?.advice) setSlot3Advice(result.data.advice)
+                          setSlot3Active(true)
+                          setHasEverTracked(true)
+                          try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
+                          showToast("🎉 Đã bật theo dõi Món #3!", `Đang theo dõi: ${slot3Variant}`, "👑")
+                        } catch (error) {
+                          console.error("Không lưu được Món #3:", error)
+                          showToast("❌ Lưu Món #3 thất bại", error instanceof Error ? error.message : "Không kết nối được server.", "❌")
+                        } finally {
+                          setSlot3Sending(false)
+                        }
+                      }}
+                      onRemove={() => {
+                        if (slot3ItemId) {
+                          deleteFromBackend(slot3ItemId)
+                          setSlot3ItemId(null)
+                        }
+                        try {
+                          localStorage.removeItem("dealping_tracked_items")
+                        } catch (e) {}
+                        setSlot3Active(false)
+                        setSlot3Input("")
+                        setSlot3Expanded(false)
+                        setSlot3BasePrice(0)
+                        setSlot3VoucherPrice(null)
+                        setSlot3ImageUrl(null)
+                        showToast("🗑️ Đã xóa Món #3", "Ô #3 trống, dán link mới đi!", "🗑️")
+                      }}
+                    />
+                  )}
+
                   {/* Slot 2 */}
                   {slot2BubbleUnlocked && (
                     <SlotCard
@@ -3163,6 +3559,8 @@ export default function App() {
                       statusLabel={slot2Status}
                       lastCheckedText={slot2LastChecked}
                       advice={slot2Advice}
+                      slot3Unlocked={slot3Unlocked}
+                      onOpenFeedback={() => setShowFeedbackModal(true)}
                       onViewDetails={() => setDetailModalSlot(2)}
                       onInputChange={(v) => {
                         setLastActiveSlot(2)
@@ -3231,6 +3629,8 @@ export default function App() {
                           if (result?.data?.advice) setSlot2Advice(result.data.advice)
 
                           setSlot2Active(true)
+                          setHasEverTracked(true)
+                          try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
 
                           showToast(
                             "🎉 Đã bật theo dõi Món #2!",
@@ -3303,6 +3703,8 @@ export default function App() {
                       statusLabel={slot1Status}
                       lastCheckedText={slot1LastChecked}
                       advice={slot1Advice}
+                      slot3Unlocked={slot3Unlocked}
+                      onOpenFeedback={() => setShowFeedbackModal(true)}
                       onViewDetails={() => setDetailModalSlot(1)}
                       onInputChange={(v) => {
                         setLastActiveSlot(1)
@@ -3371,6 +3773,8 @@ export default function App() {
                           if (result?.data?.statusLabel) setSlot1Status(result.data.statusLabel)
                           if (result?.data?.advice) setSlot1Advice(result.data.advice)
 
+                          setHasEverTracked(true)
+                          try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
                           setShowBumpSheet(true)
                         } catch (error) {
                           console.error("Không lưu được món:", error)
@@ -3571,30 +3975,85 @@ export default function App() {
                       tốc. Khi mua xong bạn có thể bấm "🗑️ Đổi món" bất cứ lúc
                       nào!
                     </p>
-                    <button
-                      onClick={() => {
-                        setShowBumpSheet(false)
-                        setSlot1Active(true)
-                        showToast(
-                          "🔔 Đã bật Radar Món #1!",
-                          `Đang theo dõi: ${slot1Variant}`,
-                        )
-                      }}
-                      className="mt-4 w-full py-3.5 rounded-[28px] apple-glow-btn text-white font-bold text-xs flex items-center justify-center space-x-2 active:scale-95 transition cursor-pointer"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
+
+                    {/* Thông báo hướng dẫn mở khóa Ô #3 sau khi hoàn thành theo dõi */}
+                    {!slot3Unlocked && (
+                      <div className="mt-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-rose-500/15 to-purple-500/20 border border-amber-400/50 text-left shadow-sm">
+                        <div className="flex items-center space-x-1.5 mb-1">
+                          <span className="text-sm">🎁</span>
+                          <span className="text-[11px] font-black text-amber-300">
+                            QUÀ TẶNG: MỞ KHÓA THÊM Ô TÌM SỐ 3!
+                          </span>
+                          <span className="text-[8px] bg-red-500 text-white font-black px-1.5 py-0.2 rounded-full animate-pulse">
+                            HOT
+                          </span>
+                        </div>
+                        <p className="text-[9.5px] text-white/85 leading-relaxed">
+                          Bạn đã hoàn thành theo dõi món đồ! Giờ đây bạn đã đủ điều kiện vào <b>Menu (☰)</b> để gửi Đánh giá & nhận ngay <b>Ô TÌM SỐ 3</b> hoàn toàn miễn phí.
+                        </p>
+                      </div>
+                    )}
+
+                    {!slot3Unlocked ? (
+                      <div className="mt-3.5 space-y-2">
+                        <button
+                          onClick={() => {
+                            setShowBumpSheet(false)
+                            setSlot1Active(true)
+                            setHasEverTracked(true)
+                            try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
+                            setShowFeedbackModal(true)
+                          }}
+                          className="w-full py-3 rounded-[24px] bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white font-black text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition shadow-lg cursor-pointer"
+                        >
+                          <span>⭐ Đánh Giá Ngay Để Mở Ô #3</span>
+                          <span>➔</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowBumpSheet(false)
+                            setSlot1Active(true)
+                            setHasEverTracked(true)
+                            try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
+                            showToast(
+                              "🔔 Đã bật Radar Món #1!",
+                              "Vào Menu (☰) để Đánh giá và nhận Ô #3 bất cứ lúc nào!",
+                              "🎁",
+                            )
+                          }}
+                          className="w-full py-2.5 rounded-[24px] bg-white/10 hover:bg-white/15 text-white/80 font-bold text-xs flex items-center justify-center space-x-2 active:scale-95 transition cursor-pointer border border-white/20"
+                        >
+                          <span>Tôi đã yên tâm rồi, cảm ơn!</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setShowBumpSheet(false)
+                          setSlot1Active(true)
+                          setHasEverTracked(true)
+                          try { localStorage.setItem("dealping_has_tracked", "true") } catch {}
+                          showToast(
+                            "🔔 Đã bật Radar Món #1!",
+                            `Đang theo dõi: ${slot1Variant}`,
+                          )
+                        }}
+                        className="mt-4 w-full py-3.5 rounded-[28px] apple-glow-btn text-white font-bold text-xs flex items-center justify-center space-x-2 active:scale-95 transition cursor-pointer"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span>Tôi đã yên tâm rồi, cảm ơn!</span>
-                    </button>
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>Tôi đã yên tâm rồi, cảm ơn!</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -3607,64 +4066,84 @@ export default function App() {
               isOpen={detailModalSlot !== null}
               onClose={() => setDetailModalSlot(null)}
               data={
-                detailModalSlot === 2
+                detailModalSlot === 3
                   ? {
-                      slotNum: 2,
-                      itemId: slot2ItemId,
-                      productName: slot2ProductName || slot2PreviewName || "Món 2 đang theo dõi",
-                      productImage: slot2ImageUrl,
-                      productPrice: slot2ProductPrice || slot2PreviewPrice,
-                      targetPrice: slot2TargetPrice,
-                      basePrice: slot2BasePrice,
-                      voucherPrice: slot2VoucherPrice,
-                      variant: slot2Variant,
-                      url: slot2Input,
-                      affiliateUrl: slot2AffiliateUrl,
+                      slotNum: 3,
+                      itemId: slot3ItemId,
+                      productName: slot3ProductName || slot3PreviewName || "Món 3 đang theo dõi",
+                      productImage: slot3ImageUrl,
+                      productPrice: slot3ProductPrice || slot3PreviewPrice,
+                      targetPrice: slot3TargetPrice,
+                      basePrice: slot3BasePrice,
+                      voucherPrice: slot3VoucherPrice,
+                      variant: slot3Variant,
+                      url: slot3Input,
+                      affiliateUrl: slot3AffiliateUrl,
                       status: "monitoring",
-                      statusLabel: slot2Status,
-                      lastCheckedText: slot2LastChecked,
-                      advice: slot2Advice,
+                      statusLabel: slot3Status,
+                      lastCheckedText: slot3LastChecked,
+                      advice: slot3Advice,
                     }
-                  : {
-                      slotNum: 1,
-                      itemId: slot1ItemId,
-                      productName: slot1ProductName || slot1PreviewName || "Món 1 đang theo dõi",
-                      productImage: slot1ImageUrl,
-                      productPrice: slot1ProductPrice || slot1PreviewPrice,
-                      targetPrice: slot1TargetPrice,
-                      basePrice: slot1BasePrice,
-                      voucherPrice: slot1VoucherPrice,
-                      variant: slot1Variant,
-                      url: slot1Input,
-                      affiliateUrl: slot1AffiliateUrl,
-                      status: "monitoring",
-                      statusLabel: slot1Status,
-                      lastCheckedText: slot1LastChecked,
-                      advice: slot1Advice,
-                    }
+                  : detailModalSlot === 2
+                    ? {
+                        slotNum: 2,
+                        itemId: slot2ItemId,
+                        productName: slot2ProductName || slot2PreviewName || "Món 2 đang theo dõi",
+                        productImage: slot2ImageUrl,
+                        productPrice: slot2ProductPrice || slot2PreviewPrice,
+                        targetPrice: slot2TargetPrice,
+                        basePrice: slot2BasePrice,
+                        voucherPrice: slot2VoucherPrice,
+                        variant: slot2Variant,
+                        url: slot2Input,
+                        affiliateUrl: slot2AffiliateUrl,
+                        status: "monitoring",
+                        statusLabel: slot2Status,
+                        lastCheckedText: slot2LastChecked,
+                        advice: slot2Advice,
+                      }
+                    : {
+                        slotNum: 1,
+                        itemId: slot1ItemId,
+                        productName: slot1ProductName || slot1PreviewName || "Món 1 đang theo dõi",
+                        productImage: slot1ImageUrl,
+                        productPrice: slot1ProductPrice || slot1PreviewPrice,
+                        targetPrice: slot1TargetPrice,
+                        basePrice: slot1BasePrice,
+                        voucherPrice: slot1VoucherPrice,
+                        variant: slot1Variant,
+                        url: slot1Input,
+                        affiliateUrl: slot1AffiliateUrl,
+                        status: "monitoring",
+                        statusLabel: slot1Status,
+                        lastCheckedText: slot1LastChecked,
+                        advice: slot1Advice,
+                      }
               }
               onOpenStore={() => {
+                const isS3 = detailModalSlot === 3
                 const isS2 = detailModalSlot === 2
-                let rawUrl = (isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input)) || "https://shopee.vn"
+                let rawUrl = (isS3 ? (slot3AffiliateUrl || slot3Input) : (isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input))) || "https://shopee.vn"
                 if (!rawUrl.startsWith("http")) rawUrl = `https://${rawUrl}`
                 window.open(rawUrl, "_blank", "noopener,noreferrer")
                 showToast("🛍️ Đang mở sàn...", "Chuyển hướng đến sản phẩm để săn deal!", "⚡")
               }}
               onTriggerAlarm={() => {
+                const isS3 = detailModalSlot === 3
                 const isS2 = detailModalSlot === 2
-                const chosenInput = isS2 ? slot2Input : slot1Input
+                const chosenInput = isS3 ? slot3Input : (isS2 ? slot2Input : slot1Input)
                 const isTikTok = chosenInput.toLowerCase().includes("tiktok")
                 const isLazada = chosenInput.toLowerCase().includes("lazada") || chosenInput.toLowerCase().includes("laz")
-                const baseP = (isS2 ? slot2BasePrice : slot1BasePrice) || (isS2 ? parseVND(slot2ProductPrice) : parseVND(slot1ProductPrice)) || 0
-                const targetP = parseVND(isS2 ? slot2TargetPrice : slot1TargetPrice) || 0
+                const baseP = (isS3 ? slot3BasePrice : (isS2 ? slot2BasePrice : slot1BasePrice)) || (isS3 ? parseVND(slot3ProductPrice) : (isS2 ? parseVND(slot2ProductPrice) : parseVND(slot1ProductPrice))) || 0
+                const targetP = parseVND(isS3 ? slot3TargetPrice : (isS2 ? slot2TargetPrice : slot1TargetPrice)) || 0
                 const mockAlarm: PriceDropData = {
-                  productName: (isS2 ? (slot2ProductName || slot2PreviewName) : (slot1ProductName || slot1PreviewName)) || "Sản phẩm đang săn",
+                  productName: (isS3 ? (slot3ProductName || slot3PreviewName) : (isS2 ? (slot2ProductName || slot2PreviewName) : (slot1ProductName || slot1PreviewName))) || "Sản phẩm đang săn",
                   oldPrice: baseP,
                   newPrice: targetP,
                   flashSalePrice: targetP,
-                  imageUrl: isS2 ? slot2ImageUrl : slot1ImageUrl,
-                  affiliateUrl: isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input),
-                  slotNum: isS2 ? 2 : 1,
+                  imageUrl: isS3 ? slot3ImageUrl : (isS2 ? slot2ImageUrl : slot1ImageUrl),
+                  affiliateUrl: isS3 ? (slot3AffiliateUrl || slot3Input) : (isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input)),
+                  slotNum: isS3 ? 3 : (isS2 ? 2 : 1),
                   platformBadge: isTikTok ? "TIKTOK SHOP - FLASH SALE" : isLazada ? "LAZADA - DEAL SẬP SÀN" : "SHOPEE MALL - GIÁ ĐÁY LỊCH SỬ",
                   discountCodes: [],
                 }
@@ -3672,11 +4151,24 @@ export default function App() {
                 triggerPriceDropAlarm(mockAlarm)
               }}
               onRemove={() => {
+                const isS3 = detailModalSlot === 3
                 const isS2 = detailModalSlot === 2
                 try {
                   localStorage.removeItem("dealping_tracked_items")
                 } catch (e) {}
-                if (isS2) {
+                if (isS3) {
+                  if (slot3ItemId) {
+                    deleteFromBackend(slot3ItemId)
+                    setSlot3ItemId(null)
+                  }
+                  setSlot3Active(false)
+                  setSlot3Input("")
+                  setSlot3Expanded(false)
+                  setSlot3BasePrice(0)
+                  setSlot3VoucherPrice(null)
+                  setSlot3ImageUrl(null)
+                  showToast("🗑️ Đã xóa Món #3", "Ô #3 trống, dán link mới đi!", "🗑️")
+                } else if (isS2) {
                   if (slot2ItemId) {
                     deleteFromBackend(slot2ItemId)
                     setSlot2ItemId(null)
@@ -3704,8 +4196,9 @@ export default function App() {
                 setDetailModalSlot(null)
               }}
               onCopyLink={async () => {
+                const isS3 = detailModalSlot === 3
                 const isS2 = detailModalSlot === 2
-                const linkToCopy = (isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input)) || ""
+                const linkToCopy = (isS3 ? (slot3AffiliateUrl || slot3Input) : (isS2 ? (slot2AffiliateUrl || slot2Input) : (slot1AffiliateUrl || slot1Input))) || ""
                 if (linkToCopy) {
                   try {
                     await navigator.clipboard.writeText(linkToCopy)
@@ -3718,6 +4211,134 @@ export default function App() {
               onUpdateTargetPrice={handleUpdateTargetPriceInDb}
               onSimulateDrop={handleSimulateDropInDb}
             />
+          )}
+
+          {/* POPUP: GÓP Ý NHẬN QUÀ Ô TÌM SỐ 3 */}
+          {showFeedbackModal && (
+            <div className="absolute inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-new-slot">
+              <div className="w-full max-w-sm apple-sheet rounded-[32px] p-5 shadow-2xl relative border-2 border-amber-400/60 bg-neutral-900/95 text-white">
+                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/10">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">🎁</span>
+                    <div>
+                      <h3 className="text-sm font-black text-amber-400">
+                        ĐÁNH GIÁ & GÓP Ý Ô #3
+                      </h3>
+                      <p className="text-[9px] text-slate-300">
+                        Mở khóa quyền theo dõi 3 món cùng lúc
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowFeedbackModal(false)}
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs text-white/70 active:scale-90 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-left">
+                  {/* Đánh giá sao */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-300 block mb-1">
+                      ⭐ Bạn cảm thấy trải nghiệm săn deal thế nào?
+                    </label>
+                    <div className="flex space-x-2 justify-center py-1.5 bg-white/5 rounded-xl border border-white/10">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFeedbackRating(star)}
+                          className={`text-2xl transition-transform active:scale-125 cursor-pointer ${
+                            star <= feedbackRating ? "scale-110 filter drop-shadow(0 0 4px #fbbf24)" : "opacity-30"
+                          }`}
+                        >
+                          ⭐
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Ô nhập góp ý */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-300 block mb-1">
+                      💬 Chia sẻ ý kiến hoặc tính năng bạn muốn DealPing bổ sung: <span className="text-red-400">*</span>
+                    </label>
+                    <textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      rows={3}
+                      placeholder="VD: Cần thêm thông báo Zalo, canh deal Shopee nhanh hơn, giao diện thân thiện..."
+                      className="w-full bg-black/40 border border-white/20 rounded-xl p-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 transition"
+                    />
+                  </div>
+
+                  {/* Thông tin liên hệ (tùy chọn) */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-300 block mb-1">
+                      📱 SĐT / Zalo / Email (Tùy chọn nhận thêm voucher):
+                    </label>
+                    <input
+                      type="text"
+                      value={feedbackContact}
+                      onChange={(e) => setFeedbackContact(e.target.value)}
+                      placeholder="0912... hoặc email"
+                      className="w-full bg-black/40 border border-white/20 rounded-xl px-2.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 transition"
+                    />
+                  </div>
+
+                  {/* Phần thưởng preview */}
+                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-amber-400/40 text-[9.5px] text-amber-200">
+                    <p className="font-bold flex items-center space-x-1">
+                      <span>🎉</span>
+                      <span>Phần thưởng mở khóa ngay lập tức:</span>
+                    </p>
+                    <p className="mt-0.5 opacity-90 leading-tight">
+                      Mở vĩnh viễn <b>Ô TÌM SỐ 3</b> để săn 3 sản phẩm cùng lúc không giới hạn!
+                    </p>
+                  </div>
+
+                  {/* Nút gửi */}
+                  <button
+                    onClick={handleSendFeedback}
+                    disabled={isSendingFeedback || !feedbackText.trim()}
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white font-black text-xs active:scale-95 shadow-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    {isSendingFeedback ? (
+                      <span>⏳ Đang gửi & mở khóa...</span>
+                    ) : (
+                      <>
+                        <span>🚀 Gửi Đánh Giá & Mở Khóa Ô #3 Ngay</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* POPUP: CHÚC MỪNG MỞ KHÓA THÀNH CÔNG Ô 3 */}
+          {showSlot3Modal && (
+            <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-new-slot">
+              <div className="w-full max-w-sm apple-sheet rounded-[32px] p-5 shadow-2xl text-center relative border-2 border-amber-400 bg-neutral-900/95 text-white">
+                <div className="text-4xl mb-2 animate-bounce">👑🎉</div>
+                <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-pink-400 to-purple-400 mb-1">
+                  MỞ KHÓA THÀNH CÔNG Ô #3!
+                </h3>
+                <p className="text-[11px] leading-relaxed opacity-90 mb-3 px-2">
+                  Cảm ơn bạn rất nhiều vì đã gửi đóng góp quý báu! DealPing đã tặng bạn vĩnh viễn <b>Ô TÌM SỐ 3</b>.
+                </p>
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-purple-500/20 border border-amber-400/50 text-[10px] font-bold text-amber-300 mb-4">
+                  ✨ Giờ đây Radar của bạn quét đồng thời 3 món hàng 24/7!
+                </div>
+                <button
+                  onClick={() => setShowSlot3Modal(false)}
+                  className="w-full py-3.5 rounded-2xl apple-glow-btn text-white font-black text-xs active:scale-95 shadow-lg cursor-pointer"
+                >
+                  Trải Nghiệm Ô #3 Ngay ✨
+                </button>
+              </div>
+            </div>
           )}
 
           {/* MODAL: BÁO ĐỘNG SẬP GIÁ (VŨ KHÍ PITCH) */}
@@ -4104,6 +4725,48 @@ export default function App() {
                 <Radio className={`w-4 h-4 ${(view as any) === "main" ? "text-sky-400" : "text-white/60"}`} />
                 <span className="text-xs">Radar Săn Deal</span>
               </button>
+              {/* Mục Đánh giá & Góp ý nhận quà Slot 3 */}
+              <div className="h-px bg-white/10 my-1 mx-2" />
+              {canLeaveFeedback ? (
+                <button 
+                  onClick={() => { setShowFeedbackModal(true); setIsMenuOpen(false); }}
+                  className="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/10 text-amber-400 font-bold cursor-pointer text-left w-full"
+                >
+                  <span className="text-base">⭐</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-xs">
+                        {slot3Unlocked ? "Đánh giá & Góp ý" : "Đánh giá nhận Ô #3"}
+                      </span>
+                      {!slot3Unlocked && (
+                        <span className="text-[8px] bg-red-500 text-white font-extrabold px-1.5 py-0.2 rounded-full animate-pulse">
+                          HOT
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[8px] text-amber-300/70 truncate font-normal">
+                      {slot3Unlocked ? "Chia sẻ cảm nghĩ về app" : "Phần thưởng: Mở khóa Ô #3"}
+                    </p>
+                  </div>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => {
+                    showToast("💡 Cần theo dõi 1 món", "Bạn hãy dán link và bật theo dõi ít nhất 1 sản phẩm trước khi đánh giá nhé!", "🔔")
+                    setIsMenuOpen(false)
+                  }}
+                  className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-white/5 text-white/40 cursor-pointer text-left w-full opacity-70"
+                  title="Cần theo dõi ít nhất 1 sản phẩm để mở khóa chức năng đánh giá"
+                >
+                  <span className="text-base opacity-50">🔒</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs">Đánh giá nhận Ô #3</span>
+                    <p className="text-[8px] text-white/40 truncate font-normal">
+                      Cần theo dõi ít nhất 1 món
+                    </p>
+                  </div>
+                </button>
+              )}
             </div>
           )}
 
