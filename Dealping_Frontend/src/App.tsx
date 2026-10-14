@@ -1065,6 +1065,7 @@ function SlotCard({
   onRemove,
   onViewDetails,
   basePrice,
+  originalPrice: propOriginalPrice,
   voucherPrice,
   previewImage,
   productImage,
@@ -1101,6 +1102,7 @@ function SlotCard({
   onRemove: () => void
   onViewDetails?: () => void
   basePrice?: number
+  originalPrice?: number
   voucherPrice?: number | null
   previewImage?: string | null
   productImage?: string | null
@@ -1115,18 +1117,62 @@ function SlotCard({
     ? "border-purple-400/30"
     : "border-pink-500/70 border-2 bg-gradient-to-b from-pink-500/15 to-purple-500/10"
 
-  const effectiveBasePrice = (basePrice && basePrice > 0)
+  // 1. Tính toán giá Nấc 1 và Nấc 2 (chống lỗi Nấc 1 đắt hơn giá sàn)
+  // Áp dụng công thức tổng quát cho mọi link từ ốp lưng 20k đến laptop 20 triệu
+  const currentPrice = (basePrice && basePrice > 0)
     ? basePrice
-    : (voucherPrice && voucherPrice > 0 ? voucherPrice : parseVND(previewPrice || ""))
+    : (voucherPrice && voucherPrice > 0 ? voucherPrice : (parseVND(previewPrice || "") || parseVND(productPrice || "") || 0))
 
-  const discountPct = effectiveBasePrice > 0
-    ? Math.max(0, Math.round((1 - parseVND(targetPrice || "") / effectiveBasePrice) * 100))
+  const originalPriceRaw = (propOriginalPrice && propOriginalPrice > 0)
+    ? propOriginalPrice
+    : (currentPrice > 0 ? currentPrice : 0)
+
+  // Giá gốc luôn >= giá sàn (tránh dữ liệu API trả về giá gốc < giá hiện tại)
+  const originalPrice = Math.max(originalPriceRaw, currentPrice)
+
+  // Nấc 1: Luôn lấy con số nhỏ hơn giữa mức giảm 10% và giá sàn đang bán
+  const rawNac1 = originalPrice >= 1000
+    ? Math.round((originalPrice * 0.9) / 1000) * 1000
+    : Math.round(originalPrice * 0.9)
+  const nac1_price = currentPrice > 0 ? Math.min(rawNac1 > 0 ? rawNac1 : currentPrice, currentPrice) : null
+
+  // Nấc 2 (Mua chậm giá hời): Canh đợt đại sale giảm sâu 28%
+  const rawNac2 = originalPrice >= 1000
+    ? Math.round((originalPrice * 0.72) / 1000) * 1000
+    : Math.round(originalPrice * 0.72)
+  // Đảm bảo Nấc 2 luôn hời hơn giá sàn và Nấc 1 (kể cả khi sản phẩm đang sale cực sâu)
+  const nac2_price = (currentPrice > 0 && rawNac2 > 0)
+    ? (rawNac2 >= currentPrice
+        ? Math.min(rawNac2, nac1_price ? Math.min(nac1_price, Math.round((nac1_price * 0.85) / 1000) * 1000 || rawNac2) : rawNac2)
+        : rawNac2)
+    : (rawNac2 > 0 ? rawNac2 : null)
+
+  // 2. Hiển thị nhãn thông minh khách quan:
+  let nac1_label = "Mức 1: Giảm nhẹ 10% (Cho ai cần mua gấp)"
+  let nac1_sublabel = "(Cho ai cần mua gấp)"
+  let isFlashSaleNow = false
+  let discountPercent = 10
+
+  if (originalPrice > 0 && currentPrice > 0 && currentPrice < originalPrice * 0.9) {
+    isFlashSaleNow = true
+    discountPercent = Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
+    nac1_label = `Mức 1: Giá Flash Sale đang có (-${discountPercent}%) - Phù hợp nếu cần gấp`
+    nac1_sublabel = "(Phù hợp nếu cần gấp)"
+  }
+
+  const selectedTargetNum = parseVND(targetPrice || "")
+  const isTier1Active = Boolean(
+    nac1_price && selectedTargetNum > 0 &&
+    (selectedTargetNum === nac1_price || Math.abs(selectedTargetNum - nac1_price) <= (currentPrice > 1000000 ? 50000 : 500))
+  )
+  const isTier2Active = Boolean(
+    nac2_price && selectedTargetNum > 0 &&
+    (selectedTargetNum === nac2_price || Math.abs(selectedTargetNum - nac2_price) <= (currentPrice > 1000000 ? 50000 : 500))
+  )
+
+  const discountPct = originalPrice > 0 && selectedTargetNum > 0
+    ? Math.max(0, Math.round((1 - selectedTargetNum / originalPrice) * 100))
     : (isSlot1 ? 20 : 30)
-
-  const tier1Target = effectiveBasePrice > 0 ? Math.round((effectiveBasePrice * 0.90) / 1000) * 1000 : null
-  const tier2Target = effectiveBasePrice > 0 ? Math.round((effectiveBasePrice * 0.72) / 1000) * 1000 : null
-  const isTier1Active = discountPct >= 8 && discountPct <= 15
-  const isTier2Active = discountPct >= 20 && discountPct <= 35
 
   const history = priceHistory
 
@@ -1237,12 +1283,13 @@ function SlotCard({
 
                 {/* Chia 2 nấc chọn giảm giá */}
                 <div className="grid grid-cols-2 gap-2">
-                  {/* Nấc 1: Giảm nhẹ 10% (Cho ai cần mua gấp) */}
+                  {/* Nấc 1: Giảm nhẹ 10% (Cho ai cần mua gấp) hoặc Giá Flash Sale đang có */}
                   <button
                     type="button"
+                    title={nac1_label}
                     onClick={() => {
-                      if (tier1Target) {
-                        onTargetPriceChange?.(formatInputNumber(tier1Target))
+                      if (nac1_price) {
+                        onTargetPriceChange?.(formatInputNumber(nac1_price))
                       }
                     }}
                     className={`p-2 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
@@ -1254,7 +1301,7 @@ function SlotCard({
                     <div className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-black flex items-center space-x-1">
                         <span>⚡</span>
-                        <span>Nấc 1: -10%</span>
+                        <span>{isFlashSaleNow ? `Nấc 1: Flash Sale (-${discountPercent}%)` : "Nấc 1: -10%"}</span>
                       </span>
                       {isTier1Active && (
                         <span className="text-[8px] bg-amber-400/30 text-amber-200 px-1 rounded font-bold">
@@ -1263,22 +1310,31 @@ function SlotCard({
                       )}
                     </div>
                     <p className="text-[8.5px] text-white/60 mt-1 leading-tight">
-                      Giảm nhẹ 10%<br />
-                      <span className="text-amber-300/90 font-medium">(Cho ai cần mua gấp)</span>
+                      {isFlashSaleNow ? (
+                        <>
+                          Giá Flash Sale đang có (-{discountPercent}%)<br />
+                          <span className="text-amber-300/90 font-medium">{nac1_sublabel}</span>
+                        </>
+                      ) : (
+                        <>
+                          Giảm nhẹ 10%<br />
+                          <span className="text-amber-300/90 font-medium">{nac1_sublabel}</span>
+                        </>
+                      )}
                     </p>
-                    {tier1Target && (
+                    {nac1_price && (
                       <span className="text-[9px] font-bold text-amber-300 mt-1">
-                        ~ {formatVND(tier1Target)}
+                        ~ {formatVND(nac1_price)}
                       </span>
                     )}
                   </button>
 
-                  {/* Nấc 2: Chế độ "Mua Chậm Giá Hời" (-25% đến -30%) */}
+                  {/* Nấc 2: Chế độ "Mua Chậm Giá Hời" (-28%) */}
                   <button
                     type="button"
                     onClick={() => {
-                      if (tier2Target) {
-                        onTargetPriceChange?.(formatInputNumber(tier2Target))
+                      if (nac2_price) {
+                        onTargetPriceChange?.(formatInputNumber(nac2_price))
                       }
                     }}
                     className={`p-2 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
@@ -1290,7 +1346,7 @@ function SlotCard({
                     <div className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-black text-emerald-300 flex items-center space-x-1">
                         <span>🔥</span>
-                        <span>Nấc 2: -25% ~ -30%</span>
+                        <span>Nấc 2: -28% Đại Sale</span>
                       </span>
                       {isTier2Active && (
                         <span className="text-[8px] bg-emerald-400/30 text-emerald-200 px-1 rounded font-bold">
@@ -1299,11 +1355,12 @@ function SlotCard({
                       )}
                     </div>
                     <p className="text-[8.5px] font-bold text-emerald-200 mt-1 leading-tight">
-                      Chế độ "Mua Chậm Giá Hời"
+                      Chế độ "Mua Chậm Giá Hời"<br />
+                      <span className="text-emerald-300/80 font-normal text-[8px]">(Canh đợt đại sale giảm sâu 28%)</span>
                     </p>
-                    {tier2Target && (
+                    {nac2_price && (
                       <span className="text-[9px] font-black text-emerald-300 mt-1">
-                        ~ {formatVND(tier2Target)}
+                        ~ {formatVND(nac2_price)}
                       </span>
                     )}
                   </button>
@@ -1321,8 +1378,8 @@ function SlotCard({
                 <div>
                   <div className="flex justify-between items-center mb-1 text-[9px] text-white/60">
                     <span>Hoặc tinh chỉnh số tiền cụ thể:</span>
-                    {effectiveBasePrice > 0 && (
-                      <span>Giá sàn: {formatVND(effectiveBasePrice)}</span>
+                    {currentPrice > 0 && (
+                      <span>Giá sàn: {formatVND(currentPrice)}</span>
                     )}
                   </div>
                   <div className="relative mb-1.5 flex items-center">
@@ -1663,6 +1720,7 @@ export default function App() {
   const [slot1PreviewName, setSlot1PreviewName] = useState("")
   const [slot1PreviewPrice, setSlot1PreviewPrice] = useState("")
   const [slot1BasePrice, setSlot1BasePrice] = useState<number>(0)
+  const [slot1OriginalPrice, setSlot1OriginalPrice] = useState<number>(0)
   const [slot1VoucherPrice, setSlot1VoucherPrice] = useState<number | null>(null)
   const [slot1ImageUrl, setSlot1ImageUrl] = useState<string | null>(null)
   const [slot1AffiliateUrl, setSlot1AffiliateUrl] = useState<string | null>(null)
@@ -1687,6 +1745,7 @@ export default function App() {
   const [slot2PreviewName, setSlot2PreviewName] = useState("")
   const [slot2PreviewPrice, setSlot2PreviewPrice] = useState("")
   const [slot2BasePrice, setSlot2BasePrice] = useState<number>(0)
+  const [slot2OriginalPrice, setSlot2OriginalPrice] = useState<number>(0)
   const [slot2VoucherPrice, setSlot2VoucherPrice] = useState<number | null>(null)
   const [slot2ImageUrl, setSlot2ImageUrl] = useState<string | null>(null)
   const [slot2AffiliateUrl, setSlot2AffiliateUrl] = useState<string | null>(null)
@@ -2461,7 +2520,9 @@ export default function App() {
             setSlot1PreviewName(pName)
 
             const rawPrice = Number(data.price) || Number(data.currentPrice) || 0
+            const origPrice = Number(data.originalPrice) || Number(data.original_price) || rawPrice
             setSlot1BasePrice(rawPrice)
+            setSlot1OriginalPrice(origPrice)
             setSlot1PreviewPrice(formatVND(rawPrice))
 
             if (data.voucherPrice) {
@@ -2474,7 +2535,11 @@ export default function App() {
             if (data.affiliateUrl || data.offerLink) setSlot1AffiliateUrl(data.affiliateUrl || data.offerLink)
 
             // Tự động tính giá mong muốn Ô 1 (Mặc định Nấc 2: Mua Chậm Giá Hời -28%)
-            const autoTarget = Math.round((rawPrice * 0.72) / 1000) * 1000
+            const validOrig1 = Math.max(origPrice, rawPrice)
+            const rawNac2_1 = validOrig1 >= 1000 ? Math.round((validOrig1 * 0.72) / 1000) * 1000 : Math.round(validOrig1 * 0.72)
+            const autoTarget = (rawPrice > 0 && rawNac2_1 >= rawPrice)
+              ? Math.min(rawNac2_1, Math.round((rawPrice * 0.85) / 1000) * 1000 || Math.round(rawPrice * 0.85))
+              : rawNac2_1
             setSlot1TargetPrice(formatInputNumber(autoTarget))
 
             if (data.variants && Array.isArray(data.variants)) {
@@ -2492,6 +2557,7 @@ export default function App() {
             const fallbackName = extractCleanProductName(slot1Input)
             setSlot1PreviewName(fallbackName)
             setSlot1BasePrice(0)
+            setSlot1OriginalPrice(0)
             setSlot1PreviewPrice("")
             setSlot1TargetPrice("")
           }
@@ -2516,7 +2582,9 @@ export default function App() {
             setSlot2PreviewName(pName)
 
             const rawPrice = Number(data.price) || Number(data.currentPrice) || 0
+            const origPrice = Number(data.originalPrice) || Number(data.original_price) || rawPrice
             setSlot2BasePrice(rawPrice)
+            setSlot2OriginalPrice(origPrice)
             setSlot2PreviewPrice(formatVND(rawPrice))
 
             if (data.voucherPrice) {
@@ -2529,8 +2597,12 @@ export default function App() {
             if (data.affiliateUrl || data.offerLink) setSlot2AffiliateUrl(data.affiliateUrl || data.offerLink)
 
             // Tự động tính giá mong muốn Ô 2 (Mặc định Nấc 2: Mua Chậm Giá Hời -28%)
-            const autoTarget = Math.round((rawPrice * 0.72) / 1000) * 1000
-            setSlot2TargetPrice(formatInputNumber(autoTarget))
+            const validOrig2 = Math.max(origPrice, rawPrice)
+            const rawNac2_2 = validOrig2 >= 1000 ? Math.round((validOrig2 * 0.72) / 1000) * 1000 : Math.round(validOrig2 * 0.72)
+            const autoTarget2 = (rawPrice > 0 && rawNac2_2 >= rawPrice)
+              ? Math.min(rawNac2_2, Math.round((rawPrice * 0.85) / 1000) * 1000 || Math.round(rawPrice * 0.85))
+              : rawNac2_2
+            setSlot2TargetPrice(formatInputNumber(autoTarget2))
 
             if (data.variants && Array.isArray(data.variants)) {
               const opts = data.variants;
@@ -2625,7 +2697,11 @@ export default function App() {
     if (price) {
        setSlot1PreviewPrice(formatVND(price))
        setSlot1BasePrice(price)
-       const autoTarget = Math.round((price * 0.72) / 1000) * 1000
+       const validOrig = Math.max(slot1OriginalPrice || 0, price)
+       const rawNac2 = validOrig >= 1000 ? Math.round((validOrig * 0.72) / 1000) * 1000 : Math.round(validOrig * 0.72)
+       const autoTarget = (price > 0 && rawNac2 >= price)
+         ? Math.min(rawNac2, Math.round((price * 0.85) / 1000) * 1000 || Math.round(price * 0.85))
+         : rawNac2
        setSlot1TargetPrice(formatInputNumber(autoTarget))
     }
   }
@@ -2635,7 +2711,11 @@ export default function App() {
     if (price) {
        setSlot2PreviewPrice(formatVND(price))
        setSlot2BasePrice(price)
-       const autoTarget = Math.round((price * 0.72) / 1000) * 1000
+       const validOrig = Math.max(slot2OriginalPrice || 0, price)
+       const rawNac2 = validOrig >= 1000 ? Math.round((validOrig * 0.72) / 1000) * 1000 : Math.round(validOrig * 0.72)
+       const autoTarget = (price > 0 && rawNac2 >= price)
+         ? Math.min(rawNac2, Math.round((price * 0.85) / 1000) * 1000 || Math.round(price * 0.85))
+         : rawNac2
        setSlot2TargetPrice(formatInputNumber(autoTarget))
     }
   }
@@ -3075,6 +3155,7 @@ export default function App() {
                       productName={slot2ProductName}
                       productPrice={slot2ProductPrice}
                       basePrice={slot2BasePrice}
+                      originalPrice={slot2OriginalPrice}
                       voucherPrice={slot2VoucherPrice}
                       previewImage={slot2ImageUrl}
                       productImage={slot2ImageUrl}
@@ -3214,6 +3295,7 @@ export default function App() {
                       accentActive="text-purple-400"
                       accentBtn="bg-purple-600"
                       basePrice={slot1BasePrice}
+                      originalPrice={slot1OriginalPrice}
                       voucherPrice={slot1VoucherPrice}
                       previewImage={slot1ImageUrl}
                       productImage={slot1ImageUrl}

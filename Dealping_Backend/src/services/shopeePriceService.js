@@ -72,8 +72,12 @@ async function fetchCurrentPrice(itemId, shopId, url = "") {
         };
       }).filter(v => v.name && v.price > 0);
 
+      const rawOriginal = product.original_price || product.price_before_discount || product.historical_price || product.raw_price || priceVal;
+      const originalPrice = parseFloat(rawOriginal) || price;
+
       return {
         price: price,
+        originalPrice: originalPrice,
         productName: productName,
         imageUrl: imageUrl,
         isXtra: false,

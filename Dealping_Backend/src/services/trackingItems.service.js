@@ -331,10 +331,13 @@ async function previewTrackingItem(urlParams) {
     affiliateUrl = await affiliateService.generateLazadaAffiliate(resolvedUrl);
   }
 
+  let originalPrice = null;
+
   try {
     if (platform === "SHOPEE") {
       const priceInfo = await shopeePriceService.fetchCurrentPrice(itemId, shopId, resolvedUrl);
       currentPrice = priceInfo.price;
+      originalPrice = priceInfo.originalPrice || currentPrice;
       productName = priceInfo.productName;
       imageUrl = priceInfo.imageUrl || null;
       variants = priceInfo.variants || [];
@@ -346,11 +349,13 @@ async function previewTrackingItem(urlParams) {
     } else if (platform === "TIKTOK") {
       const priceInfo = await tiktokPriceService.fetchCurrentPrice(resolvedUrl);
       currentPrice = priceInfo.price;
+      originalPrice = priceInfo.originalPrice || currentPrice;
       productName = priceInfo.productName;
       if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
     } else if (platform === "LAZADA") {
       const priceInfo = await lazadaPriceService.fetchCurrentPrice(resolvedUrl);
       currentPrice = priceInfo.price;
+      originalPrice = priceInfo.originalPrice || currentPrice;
       productName = priceInfo.productName;
       if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
     }
@@ -365,6 +370,7 @@ async function previewTrackingItem(urlParams) {
   return {
     productName,
     currentPrice,
+    originalPrice: originalPrice || currentPrice,
     price: currentPrice,
     resolvedUrl,
     platform,
