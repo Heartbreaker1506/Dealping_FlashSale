@@ -5,7 +5,7 @@
 
 <br/>
 
-[![Status](https://img.shields.io/badge/Status-Active_Production-00E676?style=for-the-badge&logo=statuspage&logoColor=white)](https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale)
+[![Status](https://img.shields.io/badge/Status-Active_Production-00E676?style=for-the-badge&logo=statuspage&logoColor=white)](https://github.com/Heartbreaker1506/Dealping_FlashSale)
 [![Node.js](https://img.shields.io/badge/Node.js_20-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -142,7 +142,7 @@ Dealping_FlashSale/
 
 ### 2. Clone Dự Án
 ```bash
-git clone https://github.com/tranvoanhkiet2607-eng/Dealping_FlashSale.git
+git clone https://github.com/Heartbreaker1506/Dealping_FlashSale.git
 cd Dealping_FlashSale
 ```
 
@@ -221,7 +221,7 @@ npm run dev
 
 ## 👥 Nhóm Tác Giả & Bản Quyền
 
-- **Tác giả**: [Trần Võ Anh Kiệt (tranvoanhkiet2607-eng)](https://github.com/tranvoanhkiet2607-eng)
+- **Tác giả**: [Heartbreaker1506 (Trần Võ Anh Kiệt)](https://github.com/Heartbreaker1506)
 - **Đồ án**: EXE101 — Dự án Khởi Nghiệp Đổi Mới Sáng Tạo (FA26)
 - **Tổ chức**: Trường Đại học FPT
 - **Giấy phép**: Phát hành theo giấy phép [MIT License](LICENSE).
