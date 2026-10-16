@@ -38,10 +38,10 @@ async function getDeepestSaleDeal() {
               discountPercent: discountPct,
             });
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // 2. Quét các sản phẩm đối tác live đang sale trên sàn
   const liveItemIds = ["23657819147", "23053826422"];
@@ -64,7 +64,7 @@ async function getDeepestSaleDeal() {
           discountPercent: discountPct,
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Sắp xếp tìm sản phẩm giảm sâu nhất (% giảm cao nhất)

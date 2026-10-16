@@ -63,7 +63,7 @@ async function createTrackingItem({
   const existing = await prisma.trackingItem.findFirst({
     where: existingWhere,
   });
-  
+
   if (existing) {
     const updateData = { targetPrice, variantName, lastCheckedAt: new Date() };
     if (inputImageUrl) {
@@ -79,7 +79,7 @@ async function createTrackingItem({
   let currentPrice = inputOriginalPrice || null;
   let productName = inputProductName?.trim() || null;
   let affiliateUrl = resolvedUrl;
-  
+
   if (resolvedUrl.includes("shopee.vn")) {
     affiliateUrl = affiliateService.generateShopeeAffiliate(resolvedUrl);
   } else if (resolvedUrl.includes("tiktok.com")) {
@@ -100,7 +100,7 @@ async function createTrackingItem({
       if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
       variants = priceInfo.variants || [];
       variants = priceInfo.variants || [];
-        // Use actual voucher/commission data from API only — no guessing
+      // Use actual voucher/commission data from API only — no guessing
       if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;
@@ -253,33 +253,33 @@ async function getTrackingItemChartHistory(id) {
 
 async function listBatchTrackingItems(userId) {
   if (!userId) throw new ApiError(400, "Thiếu userId");
-  
+
   const items = await prisma.trackingItem.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
   });
-  
+
   if (items.length === 0) return [];
-  
+
   // Lọc ra các item thuộc Shopee và có itemId
   const shopeeItemIds = items
     .filter(item => item.platform === "SHOPEE" && item.itemId)
     .map(item => item.itemId.toString());
-    
+
   let batchPrices = {};
   if (shopeeItemIds.length > 0) {
     batchPrices = await shopeePriceService.fetchBatchPrices(shopeeItemIds);
   }
-  
+
   return items.map(item => {
     const serialized = serializeItem(item);
-    
+
     // Gắn thêm dữ liệu giá mới nhất nếu có
     if (item.platform === "SHOPEE" && item.itemId) {
       const liveData = batchPrices[item.itemId.toString()];
       if (liveData) {
         let livePrice = liveData.price;
-        
+
         // Nếu item có chọn model cụ thể, lấy giá của model đó
         if (item.selectedModelId && liveData.variants && liveData.variants.length > 0) {
           const selectedVariant = liveData.variants.find(
@@ -289,7 +289,7 @@ async function listBatchTrackingItems(userId) {
             livePrice = selectedVariant.price;
           }
         }
-        
+
         serialized.livePrice = livePrice;
         serialized.liveProductName = liveData.productName;
         serialized.liveImageUrl = liveData.imageUrl;
@@ -301,10 +301,10 @@ async function listBatchTrackingItems(userId) {
         prisma.trackingItem.update({
           where: { id: item.id },
           data: { lastCheckedAt: new Date() }
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
-    
+
     return serialized;
   });
 }
@@ -313,9 +313,9 @@ async function previewTrackingItem(urlParams) {
   // urlParams có thể là shopeeUrl do FE gửi lên
   const finalUrl = urlParams;
   if (!finalUrl) throw new ApiError(400, "Thiếu đường dẫn sản phẩm");
-  
+
   const { platform, itemId, shopId, resolvedUrl } = await parseProductLink(finalUrl);
-  
+
   let productName = null;
   let currentPrice = null;
   let imageUrl = null;
@@ -428,7 +428,7 @@ async function simulatePriceDrop(id, userId) {
         timestamp: now,
       },
     });
-  } catch (e) {}
+  } catch (e) { }
 
   // 3. Tạo thông báo trong Database & bắn Push Notification
   const notificationService = require("./notificationService");
@@ -443,7 +443,7 @@ async function simulatePriceDrop(id, userId) {
       newPrice: dropPrice,
       targetPrice: dropPrice,
     });
-  } catch (e) {}
+  } catch (e) { }
 
   return serializeItem(updated);
 }

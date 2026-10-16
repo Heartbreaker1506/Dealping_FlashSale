@@ -28,7 +28,7 @@ router.get("/history/:itemId", async (req, res, next) => {
   try {
     const { itemId } = req.params;
     const history = await fetchPriceHistory(itemId);
-    
+
     return res.status(200).json({
       status: "success",
       data: history

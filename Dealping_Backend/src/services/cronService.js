@@ -56,8 +56,7 @@ async function processPriceUpdate(item, currentPrice) {
   // So sánh giá với targetPrice
   if (isTargetHit) {
     console.log(
-      `[CRON] 🎯 TING TING SẬP GIÁ: Sản phẩm ${
-        item.productName || item.id
+      `[CRON] 🎯 TING TING SẬP GIÁ: Sản phẩm ${item.productName || item.id
       } đã đạt giá mục tiêu (${currentPrice} <= ${item.targetPrice.toNumber()})!`
     );
 

@@ -39,7 +39,7 @@ async function fetchCurrentPrice(url = "") {
               let val = obj[f];
               if (typeof val === 'object' && val.value) val = val.value;
               else if (typeof val === 'object' && val.text) val = val.text;
-              
+
               const clean = val.toString().replace(/[^\d]/g, '');
               if (clean) priceCandidates.push(parseInt(clean, 10));
             }
