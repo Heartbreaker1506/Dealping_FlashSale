@@ -74,12 +74,15 @@ export function PriceDropAlarmModal({
 
         {/* Price comparison card */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-3 mb-3 backdrop-blur-sm text-left">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="opacity-60 text-[11px]">Giá niêm yết trên sàn:</span>
+          <div className="flex items-center justify-between text-xs mb-0.5">
+            <span className="opacity-80 text-[10.5px]">Giá gốc niêm yết sàn:</span>
             <span className="line-through text-slate-400 font-bold">
               {pricingService.formatVND(alarmData.oldPrice)}
             </span>
           </div>
+          <p className="text-[8.5px] text-purple-200/80 italic -mt-0.5 mb-1.5">
+            (Chưa trừ mã Voucher riêng trên máy bạn)
+          </p>
           <div className="flex items-center justify-between">
             <span className="text-red-400 font-bold text-xs flex items-center space-x-1">
               <span>🔥 Giá SALE sập chạm đáy:</span>

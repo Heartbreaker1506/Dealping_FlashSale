@@ -166,11 +166,14 @@ export function OrderDetailModal({
 
             <div className="space-y-1.5 text-[11px] pt-1 border-t border-white/10">
               <div className="flex justify-between items-center text-slate-300">
-                <span className="text-[10px] opacity-80">Giá niêm yết sàn:</span>
-                <span className="font-bold line-through text-slate-400">
+                <span className="text-[10px] opacity-80">Giá gốc niêm yết sàn:</span>
+                <span className="font-bold text-slate-200">
                   {pricingService.formatVND(baseNum)}
                 </span>
               </div>
+              <p className="text-[8.5px] text-purple-300/80 italic -mt-0.5 mb-1">
+                (Chưa trừ mã Voucher riêng trên máy bạn)
+              </p>
 
               {voucherNum && (
                 <div className="flex justify-between items-center text-amber-300">

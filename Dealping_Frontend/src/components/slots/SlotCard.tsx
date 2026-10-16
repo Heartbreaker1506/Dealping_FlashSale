@@ -117,56 +117,14 @@ export function SlotCard({
   // Giá gốc luôn >= giá sàn (tránh dữ liệu API trả về giá gốc < giá hiện tại)
   const originalPrice = Math.max(originalPriceRaw, currentPrice)
 
-  // Nấc 1: Luôn lấy con số nhỏ hơn giữa mức giảm 10% và giá sàn đang bán
-  const rawNac1 =
-    originalPrice >= 1000
-      ? Math.round((originalPrice * 0.9) / 1000) * 1000
-      : Math.round(originalPrice * 0.9)
-  const nac1_price =
-    currentPrice > 0
-      ? Math.min(rawNac1 > 0 ? rawNac1 : currentPrice, currentPrice)
-      : null
-
-  // Nấc 2 (Mua chậm giá hời): Canh đợt đại sale giảm sâu 28%
-  const rawNac2 =
-    originalPrice >= 1000
-      ? Math.round((originalPrice * 0.72) / 1000) * 1000
-      : Math.round(originalPrice * 0.72)
-  const nac2_price =
-    currentPrice > 0 && rawNac2 > 0
-      ? rawNac2 >= currentPrice
-        ? Math.min(
-            rawNac2,
-            nac1_price
-              ? Math.min(
-                  nac1_price,
-                  Math.round((nac1_price * 0.85) / 1000) * 1000 || rawNac2
-                )
-              : rawNac2
-          )
-        : rawNac2
-      : rawNac2 > 0
-        ? rawNac2
-        : null
-
-  // 2. Hiển thị nhãn thông minh khách quan:
-  let nac1_label = "Mức 1: Giảm nhẹ 10% (Cho ai cần mua gấp)"
-  let nac1_sublabel = "(Cho ai cần mua gấp)"
-  let isFlashSaleNow = false
-  let discountPercent = 10
-
-  if (
-    originalPrice > 0 &&
-    currentPrice > 0 &&
-    currentPrice < originalPrice * 0.9
-  ) {
-    isFlashSaleNow = true
-    discountPercent = Math.round(
-      ((originalPrice - currentPrice) / originalPrice) * 100
-    )
-    nac1_label = `Mức 1: Giá Flash Sale đang có (-${discountPercent}%) - Phù hợp nếu cần gấp`
-    nac1_sublabel = "(Phù hợp nếu cần gấp)"
-  }
+  // Nấc 1 và Nấc 2 tính theo PricingService (Cơ chế Săn Mức Giảm Thêm Δ VNĐ)
+  const tiers = pricingService.calculateTiers(originalPrice, currentPrice)
+  const nac1_price = currentPrice > 0 ? tiers.nac1_price : null
+  const nac2_price = currentPrice > 0 ? tiers.nac2_price : null
+  const nac1_label = tiers.nac1_label
+  const nac2_label = tiers.nac2_label
+  const drop1 = tiers.drop1
+  const drop2 = tiers.drop2
 
   const selectedTargetNum = pricingService.parseVND(targetPrice || "")
   const isTier1Active = Boolean(
@@ -185,11 +143,11 @@ export function SlotCard({
   )
 
   const discountPct =
-    originalPrice > 0 && selectedTargetNum > 0
-      ? Math.max(0, Math.round((1 - selectedTargetNum / originalPrice) * 100))
+    currentPrice > 0 && selectedTargetNum > 0 && currentPrice >= selectedTargetNum
+      ? Math.max(0, Math.round(((currentPrice - selectedTargetNum) / currentPrice) * 100))
       : isSlot1
-        ? 20
-        : 30
+        ? 10
+        : 28
 
   const history = priceHistory
 
@@ -285,22 +243,15 @@ export function SlotCard({
                         <h5 className="text-xs font-bold truncate">
                           {previewName}
                         </h5>
-                        {voucherPrice &&
-                        pricingService.parseVND(voucherPrice) > 0 &&
-                        pricingService.parseVND(voucherPrice) <
-                          pricingService.parseVND(previewPrice) ? (
-                          <p className="text-[10px] font-bold text-pink-500 truncate">
-                            Giá sau Voucher:{" "}
-                            {pricingService.formatVND(voucherPrice)} 🎟️{" "}
-                            <span className="text-[9px] font-normal opacity-60 line-through">
-                              (Giá sàn: {previewPrice})
-                            </span>
-                          </p>
-                        ) : (
-                          <p className="text-[10px] font-semibold text-pink-500 truncate">
-                            Giá chưa qua voucher: {previewPrice}
-                          </p>
-                        )}
+                        <p className="text-[10px] font-bold text-pink-500 dark:text-pink-400 truncate">
+                          Giá gốc niêm yết sàn:{" "}
+                          <span className="text-slate-900 dark:text-white font-black">
+                            {previewPrice || pricingService.formatVND(currentPrice)}
+                          </span>{" "}
+                          <span className="text-[9px] font-normal opacity-75">
+                            (Chưa trừ mã Voucher riêng trên máy bạn)
+                          </span>
+                        </p>
                       </>
                     )}
                   </div>
@@ -347,11 +298,7 @@ export function SlotCard({
                     <div className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-black flex items-center space-x-1 text-slate-900 dark:text-white">
                         <span>⚡</span>
-                        <span>
-                          {isFlashSaleNow
-                            ? `Nấc 1: Flash Sale (-${discountPercent}%)`
-                            : "Nấc 1: -10%"}
-                        </span>
+                        <span>Mức 1: -10%</span>
                       </span>
                       {isTier1Active && (
                         <span className="text-[8px] bg-amber-400/30 text-amber-800 dark:text-amber-200 px-1 rounded font-bold">
@@ -359,28 +306,16 @@ export function SlotCard({
                         </span>
                       )}
                     </div>
-                    <p className="text-[8.5px] text-slate-700 dark:text-white/60 mt-1 leading-tight">
-                      {isFlashSaleNow ? (
-                        <>
-                          Giá Flash Sale đang có (-{discountPercent}%)
-                          <br />
-                          <span className="text-amber-700 dark:text-amber-300/90 font-bold">
-                            {nac1_sublabel}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          Giảm nhẹ 10%
-                          <br />
-                          <span className="text-amber-700 dark:text-amber-300/90 font-bold">
-                            {nac1_sublabel}
-                          </span>
-                        </>
-                      )}
+                    <p className="text-[8.5px] text-slate-700 dark:text-white/70 mt-1 leading-tight">
+                      Hú còi khi Shop giảm thêm{" "}
+                      <b className="text-amber-700 dark:text-amber-300 font-extrabold">
+                        {pricingService.formatVND(drop1)}
+                      </b>{" "}
+                      (-10%)
                     </p>
                     {nac1_price && (
                       <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 mt-1">
-                        ~ {pricingService.formatVND(nac1_price)}
+                        Mục tiêu: {pricingService.formatVND(nac1_price)}
                       </span>
                     )}
                   </button>
@@ -388,6 +323,7 @@ export function SlotCard({
                   {/* Nấc 2 */}
                   <button
                     type="button"
+                    title={nac2_label}
                     onClick={() => {
                       if (nac2_price) {
                         onTargetPriceChange?.(
@@ -404,7 +340,7 @@ export function SlotCard({
                     <div className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 flex items-center space-x-1">
                         <span>🔥</span>
-                        <span>Nấc 2: -28% Đại Sale</span>
+                        <span>Mức 2: Săn Đại Sale (-28%)</span>
                       </span>
                       {isTier2Active && (
                         <span className="text-[8px] bg-emerald-400/30 text-emerald-800 dark:text-emerald-200 px-1 rounded font-bold">
@@ -413,15 +349,19 @@ export function SlotCard({
                       )}
                     </div>
                     <p className="text-[8.5px] font-bold text-emerald-800 dark:text-emerald-200 mt-1 leading-tight">
-                      Chế độ "Mua Chậm Giá Hời"
+                      Săn Đại Sale khi Shop giảm thêm{" "}
+                      <span className="text-emerald-700 dark:text-emerald-300 font-extrabold">
+                        {pricingService.formatVND(drop2)}
+                      </span>{" "}
+                      (-28%)
                       <br />
                       <span className="text-emerald-700 dark:text-emerald-300/80 font-normal text-[8px]">
-                        (Canh đợt đại sale giảm sâu 28%)
+                        (Chế độ Mua Chậm Giá Hời)
                       </span>
                     </p>
                     {nac2_price && (
                       <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 mt-1">
-                        ~ {pricingService.formatVND(nac2_price)}
+                        Mục tiêu: {pricingService.formatVND(nac2_price)}
                       </span>
                     )}
                   </button>
@@ -442,7 +382,7 @@ export function SlotCard({
                     <span>Hoặc tinh chỉnh số tiền cụ thể:</span>
                     {currentPrice > 0 && (
                       <span className="text-slate-800 dark:text-white/80 font-bold">
-                        Giá sàn: {pricingService.formatVND(currentPrice)}
+                        Giá gốc niêm yết: {pricingService.formatVND(currentPrice)}
                       </span>
                     )}
                   </div>
@@ -620,8 +560,8 @@ export function SlotCard({
                 <h5 className="text-xs font-bold truncate group-hover:text-purple-400 transition-colors">
                   {productName}
                 </h5>
-                <p className="text-[9px] opacity-70 truncate">
-                  {productPrice} | <b className={accentActive}>{variant}</b>
+                <p className="text-[9px] opacity-80 truncate">
+                  Giá gốc niêm yết: <span className="font-bold">{productPrice}</span> | <b className={accentActive}>{variant}</b>
                 </p>
                 <div className="flex items-center space-x-1.5 mt-0.5 overflow-hidden">
                   <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap shrink-0">

@@ -9,6 +9,8 @@ export interface PriceTiers {
   nac2_label: string
   nac1_discount_pct: number
   nac2_discount_pct: number
+  drop1: number
+  drop2: number
 }
 
 export class PricingService {
@@ -44,49 +46,35 @@ export class PricingService {
 
   /**
    * Universal dynamic tier calculator:
-   * Works for all price points from 20k to 20M without pricing inversion bugs.
+   * Săn mức giảm thêm (Delta VNĐ) từ currentPrice
    */
   public calculateTiers(originalPrice: number, currentPrice: number): PriceTiers {
     const validOrig = originalPrice > 0 ? originalPrice : currentPrice
     const validCurrent = currentPrice > 0 ? currentPrice : validOrig
 
-    // Nấc 1: Luôn lấy con số nhỏ hơn giữa mức giảm 10% và giá sàn đang bán
-    const rawNac1 = validOrig >= 1000
-      ? Math.round((validOrig * 0.9) / 1000) * 1000
-      : Math.round(validOrig * 0.9)
-    const nac1_price = Math.min(rawNac1, validCurrent)
+    // Mức 1 (-10%): Tính số tiền giảm thêm
+    const drop1 = Math.max(1000, Math.round((validCurrent * 0.10) / 1000) * 1000)
+    // Giá mục tiêu lưu xuống DB cho Bot canh: nac1_price = validCurrent - drop1
+    const nac1_price = Math.max(0, validCurrent - drop1)
+    // Nhãn hiển thị trên UI: Mức 1: Hú còi khi Shop giảm thêm ${this.formatVND(drop1)} (-10%)
+    const nac1_label = `Mức 1: Hú còi khi Shop giảm thêm ${this.formatVND(drop1)} (-10%)`
 
-    // Nấc 2 (Mua chậm giá hời): Canh đợt đại sale giảm sâu 28%
-    const rawNac2 = validOrig >= 1000
-      ? Math.round((validOrig * 0.72) / 1000) * 1000
-      : Math.round(validOrig * 0.72)
-    const nac2_price = (validCurrent > 0 && rawNac2 >= validCurrent)
-      ? Math.min(rawNac2, Math.round((validCurrent * 0.85) / 1000) * 1000 || Math.round(validCurrent * 0.85))
-      : rawNac2
-
-    // Hiển thị nhãn thông minh khách quan
-    let nac1_label = "Mức 1: Giảm nhẹ 10% (Cho ai cần mua gấp)"
-    if (validCurrent < validOrig * 0.9) {
-      const discountPercent = Math.round(((validOrig - validCurrent) / validOrig) * 100)
-      nac1_label = `Mức 1: Giá sàn hiện tại (Đang rẻ hơn gốc ${discountPercent}%)`
-    }
-
-    const nac2_label = "Mức 2: Săn Đại Sale -28% (Mua chậm giá hời)"
-
-    const nac1_discount_pct = validOrig > 0
-      ? Math.max(0, Math.round(((validOrig - nac1_price) / validOrig) * 100))
-      : 10
-    const nac2_discount_pct = validOrig > 0
-      ? Math.max(0, Math.round(((validOrig - nac2_price) / validOrig) * 100))
-      : 28
+    // Mức 2 (-28%): Tính số tiền giảm thêm
+    const drop2 = Math.max(2000, Math.round((validCurrent * 0.28) / 1000) * 1000)
+    // Giá mục tiêu lưu xuống DB cho Bot canh: nac2_price = validCurrent - drop2
+    const nac2_price = Math.max(0, validCurrent - drop2)
+    // Nhãn hiển thị trên UI: Mức 2: Săn Đại Sale khi Shop giảm thêm ${this.formatVND(drop2)} (-28%)
+    const nac2_label = `Mức 2: Săn Đại Sale khi Shop giảm thêm ${this.formatVND(drop2)} (-28%)`
 
     return {
       nac1_price,
       nac2_price,
       nac1_label,
       nac2_label,
-      nac1_discount_pct,
-      nac2_discount_pct,
+      nac1_discount_pct: 10,
+      nac2_discount_pct: 28,
+      drop1,
+      drop2,
     }
   }
 
@@ -94,14 +82,8 @@ export class PricingService {
    * Calculates default auto-target price when preview is fetched
    */
   public calculateDefaultTarget(rawPrice: number, origPrice: number): number {
-    const validOrig = Math.max(origPrice, rawPrice)
-    const rawNac2 = validOrig >= 1000
-      ? Math.round((validOrig * 0.72) / 1000) * 1000
-      : Math.round(validOrig * 0.72)
-
-    return (rawPrice > 0 && rawNac2 >= rawPrice)
-      ? Math.min(rawNac2, Math.round((rawPrice * 0.85) / 1000) * 1000 || Math.round(rawPrice * 0.85))
-      : rawNac2
+    const tiers = this.calculateTiers(origPrice, rawPrice)
+    return tiers.nac2_price
   }
 }
 
