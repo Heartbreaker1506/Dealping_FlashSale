@@ -286,7 +286,7 @@ export function SlotCard({
                   <div className="flex items-center justify-between w-full">
                     <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-300 flex items-center space-x-1.5">
                       <span>🔥</span>
-                      <span>Mức 2: Săn Đại Sale (-28%)</span>
+                      <span>Săn Đại Sale (-28%)</span>
                     </span>
                     <span className="text-[8.5px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold flex items-center space-x-1">
                       <span>⭐</span>

@@ -59,12 +59,12 @@ export class PricingService {
     // Nhãn hiển thị trên UI: Mức 1: Hú còi khi Shop giảm thêm ${this.formatVND(drop1)} (-10%)
     const nac1_label = `Mức 1: Hú còi khi Shop giảm thêm ${this.formatVND(drop1)} (-10%)`
 
-    // Mức 2 (-28%): Tính số tiền giảm thêm
+    // Săn Đại Sale (-28%): Tính số tiền giảm thêm
     const drop2 = Math.max(2000, Math.round((validCurrent * 0.28) / 1000) * 1000)
     // Giá mục tiêu lưu xuống DB cho Bot canh: nac2_price = validCurrent - drop2
     const nac2_price = Math.max(0, validCurrent - drop2)
-    // Nhãn hiển thị trên UI: Mức 2: Săn Đại Sale khi Shop giảm thêm ${this.formatVND(drop2)} (-28%)
-    const nac2_label = `Mức 2: Săn Đại Sale khi Shop giảm thêm ${this.formatVND(drop2)} (-28%)`
+    // Nhãn hiển thị trên UI: Săn Đại Sale khi Shop giảm thêm ${this.formatVND(drop2)} (-28%)
+    const nac2_label = `Săn Đại Sale khi Shop giảm thêm ${this.formatVND(drop2)} (-28%)`
 
     return {
       nac1_price,
