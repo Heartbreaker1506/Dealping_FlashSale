@@ -70,9 +70,9 @@ export function useFeedback({
     setShowFeedbackModal(false)
     setShowSlot3Modal(true)
     showToast(
-      "🎉 Phần thưởng Slot 3!",
-      "Bạn đã mở khóa thành công Ô TÌM SỐ 3 đặc quyền!",
-      "👑"
+      "💌 Đã gửi góp ý & mở khóa Slot #3!",
+      "Ý kiến của bạn đã được gửi tới dealpingflashsale@gmail.com. Chúc bạn săn deal vui vẻ!",
+      "🎉"
     )
   }
 
