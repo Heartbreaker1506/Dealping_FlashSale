@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 @keyframes apple-mesh-spin {
   0% { transform: translate(0, 0) scale(1) rotate(0deg); }
@@ -199,6 +200,10 @@
 /* Dark mode */
 .dark-mode {
   background: #08090E;
+  color: #f8fafc;
+}
+.dark-mode .text-slate-900,
+.dark-mode .text-slate-800 {
   color: #f8fafc;
 }
 .dark-mode .apple-glass {
