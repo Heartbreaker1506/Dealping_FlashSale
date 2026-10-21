@@ -335,14 +335,25 @@ async function previewTrackingItem(urlParams) {
 
   try {
     if (platform === "SHOPEE") {
+      let workerVoucherPrice = null;
+      try {
+        const { getCachedVoucherPrice, enqueueShopeeTask } = require("../routes/worker.routes");
+        workerVoucherPrice = getCachedVoucherPrice(itemId);
+        if (!workerVoucherPrice) {
+          enqueueShopeeTask(itemId, resolvedUrl);
+        }
+      } catch (e) {}
+
       const priceInfo = await shopeePriceService.fetchCurrentPrice(itemId, shopId, resolvedUrl);
-      currentPrice = priceInfo.price;
+      currentPrice = workerVoucherPrice ? workerVoucherPrice : priceInfo.price;
       originalPrice = priceInfo.originalPrice || currentPrice;
       productName = priceInfo.productName;
       imageUrl = priceInfo.imageUrl || null;
       variants = priceInfo.variants || [];
-      // Use actual voucher/commission data from API only — no guessing
-      if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
+      
+      if (workerVoucherPrice) {
+        voucherPrice = workerVoucherPrice;
+      } else if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;
       }

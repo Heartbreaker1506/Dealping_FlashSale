@@ -224,19 +224,35 @@ export class TrackingApiService {
     contact: string
   ): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl}/api/feedback`, {
+      const cleanContact = contact.trim() || "Không để lại"
+      const nowVN = new Date().toLocaleString("vi-VN")
+
+      const payload: Record<string, any> = {
+        _subject: `[DealPing] Góp ý mới (${rating}/5 sao) - ${cleanContact}`,
+        _captcha: "false",
+        "Đánh giá": `${rating}/5 sao`,
+        "Nội dung góp ý": feedback.trim(),
+        "Liên hệ": cleanContact,
+        "Thời gian": nowVN,
+        "User ID": this.getUserId(),
+      }
+
+      if (cleanContact.includes("@")) {
+        payload["_replyto"] = cleanContact
+      }
+
+      await fetch("https://formsubmit.co/ajax/697db4884961fc6393eac71f7243030a", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: this.getUserId(),
-          rating,
-          feedback: feedback.trim(),
-          contact: contact.trim(),
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(payload),
       })
-      return res.ok
-    } catch {
-      return false
+      return true
+    } catch (err) {
+      console.error("Lỗi gửi FormSubmit:", err)
+      return true // Vẫn cho unlock Slot 3 để không kẹt user
     }
   }
 

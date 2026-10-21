@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "DealPing Bridge & Auto Worker — Đồng Bộ Giá Thực Tế",
+  "version": "3.0.0",
+  "description": "Cầu nối ngầm & Máy trạm Auto Worker tự động đọc Giá Sau Voucher trên Shopee (tự mở và tự đóng tab ngầm) truyền về DealPing.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.shopee.vn/*",
+    "*://localhost/*",
+    "*://127.0.0.1/*",
+    "*://*.onrender.com/*",
+    "*://*.vercel.app/*",
+    "*://*.netlify.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "DealPing Bridge & Worker"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.shopee.vn/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://localhost/*",
+        "*://127.0.0.1/*",
+        "*://*.vercel.app/*",
+        "*://*.netlify.app/*"
+      ],
+      "js": [
+        "webapp_bridge.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://localhost/*",
+        "*://127.0.0.1/*",
+        "*://*.vercel.app/*",
+        "*://*.netlify.app/*"
+      ],
+      "js": [
+        "page_interceptor.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>DealPing Radar & Worker</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      width: 335px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .brand {
+      font-weight: 800;
+      font-size: 14px;
+      color: #38bdf8;
+    }
+    .badge {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.4);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 12px;
+    }
+    .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .price {
+      font-size: 24px;
+      font-weight: 800;
+      color: #4ade80;
+    }
+    .tiers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tier {
+      background: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.3);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+    .tier-label {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .tier-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .empty {
+      color: #94a3b8;
+      font-size: 12px;
+      text-align: center;
+      padding: 14px 0;
+    }
+    .worker-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .worker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .worker-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .input-url {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: #f8fafc;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .btn-save {
+      width: 100%;
+      margin-top: 8px;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .stats {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="brand">⚡ DEALPING EXTENSION v3.0</span>
+    <span class="badge">WORKER + BRIDGE</span>
+  </div>
+
+  <div id="content">
+    <div class="card">
+      <div class="empty">Mở 1 trang sản phẩm Shopee bất kỳ để DealPing đọc Giá Sau Voucher!</div>
+    </div>
+  </div>
+
+  <div class="worker-box">
+    <div class="worker-row">
+      <span class="worker-title">🤖 Chế độ Máy Trạm (Kiệt/Quân)</span>
+      <input type="checkbox" id="workerToggle" />
+    </div>
+    <div style="font-size:11px;color:#cbd5e1;">Backend API URL:</div>
+    <input type="text" id="backendUrl" class="input-url" placeholder="http://localhost:3000" />
+    <button id="saveWorkerBtn" class="btn-save">Lưu cấu hình Máy Trạm</button>
+    <div id="workerStats" class="stats">Trạng thái: Đang chờ kích hoạt</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
