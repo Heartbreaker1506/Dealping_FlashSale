@@ -8,6 +8,7 @@ const userRoutes = require("./routes/user.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const dealRoutes = require("./routes/deal.routes");
 const feedbackRoutes = require("./routes/feedback.routes");
+const { router: workerRoutes } = require("./routes/worker.routes");
 const firebaseAdmin = require("./config/firebase");
 
 const app = express();
@@ -23,6 +24,7 @@ app.use("/api/tracking-items", trackingItemsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/worker", workerRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -352,6 +352,8 @@ async function previewTrackingItem(urlParams) {
       originalPrice = priceInfo.originalPrice || currentPrice;
       productName = priceInfo.productName;
       if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
+      variants = priceInfo.variants || [];
+      voucherPrice = priceInfo.voucherPrice || null;
     } else if (platform === "LAZADA") {
       const priceInfo = await lazadaPriceService.fetchCurrentPrice(resolvedUrl);
       currentPrice = priceInfo.price;

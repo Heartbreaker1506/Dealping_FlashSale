@@ -1,11 +1,19 @@
 const axios = require("axios");
 const ApiError = require("../utils/ApiError");
 
-const SHORT_LINK_HOSTS = ["shp.ee", "vn.shp.ee", "s.shopee.vn", "vt.tiktok.com", "s.lazada.vn", "shorten.asia"];
+const SHORT_LINK_HOSTS = [
+  "shp.ee",
+  "vn.shp.ee",
+  "s.shopee.vn",
+  "vt.tiktok.com",
+  "vm.tiktok.com",
+  "s.lazada.vn",
+  "shorten.asia"
+];
 
-/**
- * Kiểm tra url có phải dạng rút gọn (vn.shp.ee/...) hay không.
- */
+const CHROME_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
 function isShortLink(url) {
   try {
     const { hostname } = new URL(url);
@@ -16,62 +24,84 @@ function isShortLink(url) {
 }
 
 /**
- * Theo dõi chuỗi redirect (301/302) của link rút gọn để lấy ra link dài thật sự.
- * Không dùng axios({maxRedirects}) mặc định vì cần dừng lại đúng lúc lấy header Location,
- * tránh bị chặn bởi các bước redirect trung gian có thể trả về trang lỗi.
+ * Phân giải link rút gọn (vt.tiktok.com, vm.tiktok.com, s.shopee.vn, s.lazada.vn)
+ * Dừng ngay khi đã nhảy sang domain đích có chứa ID sản phẩm để không bị tường lửa chặn ở bước thứ 2.
  */
 async function resolveShortLink(shortUrl, maxHops = 5) {
   let currentUrl = shortUrl;
 
   for (let hop = 0; hop < maxHops; hop++) {
-    const response = await axios.get(currentUrl, {
-      maxRedirects: 0,
-      timeout: 8000,
-      validateStatus: (status) => (status >= 200 && status < 300) || (status >= 300 && status < 400),
-      headers: { "User-Agent": "Mozilla/5.0 (DealPing-LinkResolver)" },
-    });
-
-    if (response.status >= 300 && response.status < 400 && response.headers.location) {
-      currentUrl = response.headers.location.startsWith("http")
-        ? response.headers.location
-        : new URL(response.headers.location, currentUrl).toString();
-      continue;
+    // Nếu URL hiện tại không còn là link rút gọn nữa -> dừng ngay và trả về luôn!
+    if (hop > 0 && !isShortLink(currentUrl)) {
+      return currentUrl;
     }
 
-    // Không còn redirect nữa -> đây là link dài cuối cùng
-    return currentUrl;
+    try {
+      const response = await axios.get(currentUrl, {
+        maxRedirects: 0,
+        timeout: 8000,
+        validateStatus: (status) => status >= 200 && status < 400,
+        headers: {
+          "User-Agent": CHROME_UA,
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "vi-VN,vi;q=0.9,en;q=0.8"
+        }
+      });
+
+      if (response.status >= 300 && response.status < 400 && response.headers.location) {
+        currentUrl = response.headers.location.startsWith("http")
+          ? response.headers.location
+          : new URL(response.headers.location, currentUrl).toString();
+        continue;
+      }
+
+      return currentUrl;
+    } catch (err) {
+      // Nếu lỗi xảy ra ở bước sau khi đã lấy được URL mới thì vẫn trả về currentUrl
+      if (currentUrl !== shortUrl) return currentUrl;
+      throw new ApiError(400, "Không thể phân giải link rút gọn này");
+    }
   }
 
-  throw new ApiError(400, "Không thể phân giải link rút gọn Shopee (quá nhiều redirect)");
+  return currentUrl;
 }
 
 /**
- * Trích xuất itemId + shopId từ một link Shopee DẠNG DÀI.
- * Hỗ trợ 2 pattern phổ biến:
- *   1. https://shopee.vn/Ten-San-Pham-i.{shopId}.{itemId}
- *   2. https://shopee.vn/product/{shopId}/{itemId}
+ * Trích xuất itemId + shopId từ link Shopee hoặc TikTok Shop
  */
 function extractIdsFromLongUrl(longUrl) {
-  // Pattern 1: ...-i.123456.789012(?query)
+  if (!longUrl) return null;
+
+  // 1. Shopee patterns
   const patternI = /-i\.(\d+)\.(\d+)(?:[/?#]|$)/;
-  // Pattern 2: /product/123456/789012
   const patternProduct = /\/product\/(\d+)\/(\d+)/;
-  // Pattern 3: /opaanlp/123456/789012
   const patternOpa = /\/opaanlp\/(\d+)\/(\d+)/;
 
-  let match = longUrl.match(patternI) || longUrl.match(patternProduct) || longUrl.match(patternOpa);
+  const shopeeMatch =
+    longUrl.match(patternI) ||
+    longUrl.match(patternProduct) ||
+    longUrl.match(patternOpa);
 
-  if (!match) {
-    return null;
+  if (shopeeMatch) {
+    const [, shopId, itemId] = shopeeMatch;
+    return { shopId, itemId };
   }
 
-  const [, shopId, itemId] = match;
-  return { shopId, itemId };
+  // 2. TikTok Shop patterns (15-25 chữ số)
+  if (longUrl.includes("tiktok.com")) {
+    const tiktokMatch =
+      longUrl.match(/(?:pdp|product)\/(?:[^/?#]+\/)?(\d{15,25})/) ||
+      longUrl.match(/\/view\/product\/(\d{15,25})/) ||
+      longUrl.match(/product_id=(\d{15,25})/) ||
+      longUrl.match(/\/(\d{15,25})(?:[/?#]|$)/);
+    if (tiktokMatch) {
+      return { shopId: null, itemId: tiktokMatch[1] };
+    }
+  }
+
+  return null;
 }
 
-/**
- * Trích xuất tên sản phẩm từ URL đã phân giải (Shopee, Lazada, TikTok)
- */
 function extractProductNameFromUrl(url) {
   if (!url || typeof url !== "string") return null;
   try {
@@ -79,7 +109,18 @@ function extractProductNameFromUrl(url) {
     const pathname = parsed.pathname;
     const hostname = parsed.hostname;
 
-    // 1. Shopee: Pattern /Ten-san-pham-i.shopId.itemId
+    // 0. Nếu link TikTok có sẵn og_info={"title":"..."} trong URL query string
+    const ogInfoRaw = parsed.searchParams.get("og_info");
+    if (ogInfoRaw) {
+      try {
+        const ogObj = JSON.parse(ogInfoRaw);
+        if (ogObj.title) {
+          return ogObj.title.replace(/\+/g, " ").trim();
+        }
+      } catch {}
+    }
+
+    // 1. Shopee: /Ten-san-pham-i.shopId.itemId
     const shopeeMatch = pathname.match(/^\/(.+)-i\.\d+\.\d+/);
     if (shopeeMatch) {
       return decodeURIComponent(shopeeMatch[1])
@@ -103,10 +144,16 @@ function extractProductNameFromUrl(url) {
       return "Sản phẩm Lazada";
     }
 
-    // 3. TikTok
+    // 3. TikTok slug: /vn/pdp/ps5-new-12-thang-may-choi-game/1731787119644477587
     if (hostname.includes("tiktok")) {
-      const match = pathname.match(/\/view\/item\/(\d+)/) || pathname.match(/\/product\/([^/?#]+)/);
-      return match ? "Sản phẩm TikTok Shop" : "Sản phẩm TikTok Shop";
+      const slugMatch = pathname.match(/\/pdp\/([^/?#]+)\/\d{15,25}/);
+      if (slugMatch && !/^\d+$/.test(slugMatch[1])) {
+        return decodeURIComponent(slugMatch[1])
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase())
+          .trim();
+      }
+      return "Sản phẩm TikTok Shop";
     }
 
     if (hostname.includes("shopee") || /shp\.ee/.test(hostname)) {
@@ -119,21 +166,13 @@ function extractProductNameFromUrl(url) {
   }
 }
 
-
-/**
- * Tự động phát hiện platform dựa trên hostname
- */
 function identifyPlatform(hostname) {
   if (/shopee|shp\.ee/.test(hostname)) return "SHOPEE";
-  if (/tiktok|shorten\.asia/.test(hostname)) return "TIKTOK"; // shorten.asia thường dùng cho tiktok trong dự án này
+  if (/tiktok|shorten\.asia/.test(hostname)) return "TIKTOK";
   if (/lazada|s\.lazada\.vn/.test(hostname)) return "LAZADA";
   return null;
 }
 
-/**
- * Entry point chính: nhận vào bất kỳ link sản phẩm nào (dài hoặc rút gọn),
- * trả về { platform, itemId, shopId, resolvedUrl }.
- */
 async function parseProductLink(rawUrl) {
   if (!rawUrl || typeof rawUrl !== "string") {
     throw new ApiError(400, "URL không hợp lệ");
@@ -167,7 +206,7 @@ async function parseProductLink(rawUrl) {
     platform: finalPlatform,
     itemId: ids ? ids.itemId : null,
     shopId: ids ? ids.shopId : null,
-    resolvedUrl: longUrl,
+    resolvedUrl: longUrl
   };
 }
 
@@ -177,5 +216,5 @@ module.exports = {
   extractIdsFromLongUrl,
   extractProductNameFromUrl,
   parseProductLink,
-  identifyPlatform,
+  identifyPlatform
 };
