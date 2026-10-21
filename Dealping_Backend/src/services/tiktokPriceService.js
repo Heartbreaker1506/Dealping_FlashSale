@@ -184,9 +184,15 @@ function extractFromModernRouterData(routerData) {
 /**
  * Cào trực tiếp trang sản phẩm TikTok Shop (Hỗ trợ cả link rút gọn vt.tiktok.com và link đầy đủ shop.tiktok.com)
  */
-async function fetchFromHtml(url = "", productId = null) {
-  const urlMeta = extractMetadataFromUrlParams(url);
-  let resolvedPid = productId || urlMeta.productId || extractProductId(url);
+async function fetchFromHtml(url = "", productId = null, rawUrl = null) {
+  let urlMeta = extractMetadataFromUrlParams(url);
+  if ((!urlMeta.title || !urlMeta.imageUrl) && rawUrl) {
+    const rawMeta = extractMetadataFromUrlParams(rawUrl);
+    if (!urlMeta.title && rawMeta.title) urlMeta.title = rawMeta.title;
+    if (!urlMeta.imageUrl && rawMeta.imageUrl) urlMeta.imageUrl = rawMeta.imageUrl;
+    if (!urlMeta.productId && rawMeta.productId) urlMeta.productId = rawMeta.productId;
+  }
+  let resolvedPid = productId || urlMeta.productId || extractProductId(url) || (rawUrl ? extractProductId(rawUrl) : null);
   let finalUrl = url;
 
   try {
@@ -332,21 +338,22 @@ async function fetchFromHtml(url = "", productId = null) {
   return null;
 }
 
-async function fetchCurrentPrice(url = "", itemId = null) {
-  const productId = extractProductId(url, itemId);
+async function fetchCurrentPrice(url = "", itemId = null, rawUrl = null) {
+  const targetUrl = url || rawUrl || "";
+  const productId = extractProductId(targetUrl, itemId) || (rawUrl ? extractProductId(rawUrl, itemId) : null);
 
-  if (!url && !productId) {
+  if (!targetUrl && !productId) {
     return defaultFallback();
   }
 
   // 1. Cào trực tiếp từ trang PDP TikTok Shop + Giải mã og_info URL
-  const scrapeResult = await fetchFromHtml(url, productId);
+  const scrapeResult = await fetchFromHtml(targetUrl, productId, rawUrl);
   if (scrapeResult && (scrapeResult.price > 0 || scrapeResult.productName)) {
     return scrapeResult;
   }
 
   // 2. Fallback từ Database nếu có item đang theo dõi
-  return fallbackFromDbOrMock(url, productId);
+  return fallbackFromDbOrMock(targetUrl, productId);
 }
 
 async function fallbackFromDbOrMock(url = "", itemId = null) {

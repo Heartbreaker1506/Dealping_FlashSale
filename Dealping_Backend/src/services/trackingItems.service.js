@@ -6,6 +6,7 @@ const tiktokPriceService = require("./tiktokPriceService");
 const lazadaPriceService = require("./lazadaPriceService");
 const affiliateService = require("./affiliate.service");
 const axios = require("axios");
+const { enqueueShopeeTask, getCachedVoucherPrice } = require("../routes/worker.routes");
 
 /**
  * unlockedSlot2 = false -> tối đa 1 item
@@ -94,19 +95,36 @@ async function createTrackingItem({
 
   try {
     if (platform === "SHOPEE") {
+      if (itemId) {
+        enqueueShopeeTask(itemId, resolvedUrl || finalUrl);
+      }
       const priceInfo = await shopeePriceService.fetchCurrentPrice(itemId, shopId, resolvedUrl);
       if (!currentPrice && priceInfo.price > 0) currentPrice = priceInfo.price;
       if (!productName) productName = priceInfo.productName;
       if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
-      variants = priceInfo.variants || [];
       variants = priceInfo.variants || [];
       // Use actual voucher/commission data from API only — no guessing
       if (priceInfo.isXtra && Number(priceInfo.sellerComFinal) > 0) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;
       }
+      // Ưu tiên giá sau voucher từ máy trạm (Worker Extension DOM) nếu có
+      let workerVoucher = getCachedVoucherPrice(itemId);
+      if (!workerVoucher && itemId) {
+        try {
+          const dbCache = await prisma.shopeeProductCache.findUnique({
+            where: { itemId: BigInt(itemId) }
+          });
+          if (dbCache && Number(dbCache.price) > 0) {
+            workerVoucher = Number(dbCache.price);
+          }
+        } catch (e) {}
+      }
+      if (workerVoucher && workerVoucher > 0) {
+        voucherPrice = workerVoucher;
+      }
     } else if (platform === "TIKTOK") {
-      const priceInfo = await tiktokPriceService.fetchCurrentPrice(resolvedUrl);
+      const priceInfo = await tiktokPriceService.fetchCurrentPrice(resolvedUrl || finalUrl, itemId, finalUrl);
       if (!currentPrice && priceInfo.price > 0) currentPrice = priceInfo.price;
       if (!productName) productName = priceInfo.productName;
       if (priceInfo.imageUrl) imageUrl = priceInfo.imageUrl;
@@ -276,6 +294,10 @@ async function listBatchTrackingItems(userId) {
 
     // Gắn thêm dữ liệu giá mới nhất nếu có
     if (item.platform === "SHOPEE" && item.itemId) {
+      const cachedVoucher = getCachedVoucherPrice(item.itemId);
+      if (cachedVoucher) {
+        serialized.voucherPrice = cachedVoucher;
+      }
       const liveData = batchPrices[item.itemId.toString()];
       if (liveData) {
         let livePrice = liveData.price;
@@ -335,6 +357,9 @@ async function previewTrackingItem(urlParams) {
 
   try {
     if (platform === "SHOPEE") {
+      if (itemId) {
+        enqueueShopeeTask(itemId, resolvedUrl || finalUrl);
+      }
       const priceInfo = await shopeePriceService.fetchCurrentPrice(itemId, shopId, resolvedUrl);
       currentPrice = priceInfo.price;
       originalPrice = priceInfo.originalPrice || currentPrice;
@@ -346,8 +371,23 @@ async function previewTrackingItem(urlParams) {
         const voucherDiscount = Math.floor(Number(priceInfo.sellerComFinal) / 10000) * 10000;
         voucherPrice = voucherDiscount > 0 ? Number(priceInfo.price) - voucherDiscount : null;
       }
+      // Ưu tiên giá sau voucher từ máy trạm (Worker Extension DOM) nếu có
+      let workerVoucher = getCachedVoucherPrice(itemId);
+      if (!workerVoucher && itemId) {
+        try {
+          const dbCache = await prisma.shopeeProductCache.findUnique({
+            where: { itemId: BigInt(itemId) }
+          });
+          if (dbCache && Number(dbCache.price) > 0) {
+            workerVoucher = Number(dbCache.price);
+          }
+        } catch (e) {}
+      }
+      if (workerVoucher && workerVoucher > 0) {
+        voucherPrice = workerVoucher;
+      }
     } else if (platform === "TIKTOK") {
-      const priceInfo = await tiktokPriceService.fetchCurrentPrice(resolvedUrl);
+      const priceInfo = await tiktokPriceService.fetchCurrentPrice(resolvedUrl || finalUrl, itemId, finalUrl);
       currentPrice = priceInfo.price;
       originalPrice = priceInfo.originalPrice || currentPrice;
       productName = priceInfo.productName;
