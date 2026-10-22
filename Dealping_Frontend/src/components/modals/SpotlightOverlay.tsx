@@ -112,8 +112,8 @@ export function SpotlightOverlay({
             right: 16,
           }}
         >
-          <div className="bg-white rounded-[20px] p-4 shadow-2xl relative">
-            <p className="text-[12px] font-bold text-slate-800 leading-snug mb-3">
+          <div className="spotlight-card rounded-[20px] p-4 shadow-2xl relative">
+            <p className="text-[12px] font-bold leading-snug mb-3">
               <b>Bước 1:</b> Dán link món đồ muốn săn (Shopee, TikTok, Lazada) vào
               ô này — hệ thống sẽ canh giá 24/7 cho bạn!
             </p>
@@ -125,13 +125,10 @@ export function SpotlightOverlay({
             </button>
             {/* Arrow pointing UP to the input */}
             <div
-              className="absolute w-0 h-0"
+              className="spotlight-arrow absolute w-0 h-0"
               style={{
                 top: -10,
                 left: 36,
-                borderLeft: "10px solid transparent",
-                borderRight: "10px solid transparent",
-                borderBottom: "10px solid white",
               }}
             />
           </div>
@@ -199,19 +196,16 @@ export function SpotlightOverlay({
         className="absolute pointer-events-auto"
         style={{ top: bTop + bH / 2 + 40, left: 16, right: 16 }}
       >
-        <div className="bg-white rounded-[20px] p-4 shadow-2xl relative">
+        <div className="spotlight-card rounded-[20px] p-4 shadow-2xl relative">
           <div
-            className="absolute w-0 h-0"
+            className="spotlight-arrow absolute w-0 h-0"
             style={{
               top: -10,
               left: bLeft - 16,
               transform: "translateX(-50%)",
-              borderLeft: "10px solid transparent",
-              borderRight: "10px solid transparent",
-              borderBottom: "10px solid white",
             }}
           />
-          <p className="text-[12px] font-bold text-slate-800 leading-snug mb-3">
+          <p className="text-[12px] font-bold leading-snug mb-3">
             <b>Bước 2:</b> Thấy bong bóng bay quanh Radar chưa? Chạm nổ đủ{" "}
             <b>10 bóng</b> để mở khoá thêm Ô săn deal thứ 2!
           </p>

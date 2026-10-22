@@ -206,6 +206,298 @@
 .dark-mode .text-slate-800 {
   color: #f8fafc;
 }
+
+/* Đảm bảo nếu có container nền trắng trong Dark mode, chữ màu tối không bị ép thành màu trắng */
+.dark-mode .bg-white .text-slate-900,
+.dark-mode .bg-white .text-slate-800,
+.dark-mode .bg-white\/95 .text-slate-900,
+.dark-mode .bg-white\/95 .text-slate-800,
+.dark-mode .bg-white\/90 .text-slate-900,
+.dark-mode .bg-white\/90 .text-slate-800,
+.dark-mode [class*="bg-white"] .text-slate-900,
+.dark-mode [class*="bg-white"] .text-slate-800 {
+  color: #0f172a !important;
+}
+
+/* ================= SPOTLIGHT TUTORIAL TOOLTIP ================= */
+/* Light Mode */
+.spotlight-card {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25) !important;
+}
+.spotlight-card p,
+.spotlight-card b,
+.spotlight-card span:not(.apple-glow-btn *) {
+  color: #0f172a !important;
+}
+.spotlight-arrow {
+  border-left: 10px solid transparent !important;
+  border-right: 10px solid transparent !important;
+  border-bottom: 10px solid #ffffff !important;
+  border-top: 0 !important;
+}
+
+/* Dark Mode */
+.dark-mode .spotlight-card,
+.dark .spotlight-card {
+  background: #161a29 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(139, 92, 246, 0.3) !important;
+}
+.dark-mode .spotlight-card p,
+.dark-mode .spotlight-card b,
+.dark-mode .spotlight-card span:not(.apple-glow-btn *),
+.dark .spotlight-card p,
+.dark .spotlight-card b,
+.dark .spotlight-card span:not(.apple-glow-btn *) {
+  color: #ffffff !important;
+}
+.dark-mode .spotlight-arrow,
+.dark .spotlight-arrow {
+  border-bottom-color: #161a29 !important;
+}
+
+/* Onboarding Dialog */
+.onboarding-dialog {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+}
+.dark-mode .onboarding-dialog,
+.dark .onboarding-dialog {
+  background: rgba(22, 26, 41, 0.95) !important;
+  color: #ffffff !important;
+}
+.dark-mode .onboarding-dialog b,
+.dark-mode .onboarding-dialog strong {
+  color: #ffffff !important;
+}
+
+/* ================= MENU POPUP (LIGHT / DARK THEME) ================= */
+/* Light Mode Menu Popup */
+.menu-popup {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.16), 0 0 15px rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+}
+.menu-popup .menu-item {
+  color: #334155 !important;
+}
+.menu-popup .menu-item svg {
+  color: #64748b !important;
+}
+.menu-popup .menu-item span {
+  color: #334155 !important;
+}
+.menu-popup .menu-item:hover {
+  background: rgba(241, 245, 249, 0.95) !important;
+}
+.menu-popup .menu-item:hover span,
+.menu-popup .menu-item:hover svg {
+  color: #0f172a !important;
+}
+
+/* Active states in Light Mode */
+.menu-popup .menu-item.active-wishlist {
+  background: rgba(168, 85, 247, 0.12) !important;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+}
+.menu-popup .menu-item.active-wishlist span,
+.menu-popup .menu-item.active-wishlist svg {
+  color: #9333ea !important;
+}
+
+.menu-popup .menu-item.active-price-chart {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+.menu-popup .menu-item.active-price-chart span,
+.menu-popup .menu-item.active-price-chart svg {
+  color: #059669 !important;
+}
+
+.menu-popup .menu-item.active-account {
+  background: rgba(236, 72, 153, 0.12) !important;
+  border: 1px solid rgba(236, 72, 153, 0.25) !important;
+}
+.menu-popup .menu-item.active-account span,
+.menu-popup .menu-item.active-account svg {
+  color: #db2777 !important;
+}
+
+.menu-popup .menu-item.active-main {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border: 1px solid rgba(14, 165, 233, 0.25) !important;
+}
+.menu-popup .menu-item.active-main span,
+.menu-popup .menu-item.active-main svg {
+  color: #0284c7 !important;
+}
+
+.menu-popup .menu-divider {
+  background: rgba(226, 232, 240, 0.9) !important;
+}
+.menu-popup .menu-feedback {
+  color: #d97706 !important;
+}
+.menu-popup .menu-feedback span {
+  color: #d97706 !important;
+}
+.menu-popup .menu-feedback-sub {
+  color: #b45309 !important;
+}
+.menu-popup .menu-feedback:hover {
+  background: rgba(254, 243, 199, 0.7) !important;
+}
+.menu-popup .menu-feedback-locked span,
+.menu-popup .menu-feedback-locked p {
+  color: #94a3b8 !important;
+}
+
+/* Dark Mode Menu Popup */
+.dark-mode .menu-popup,
+.dark .menu-popup {
+  background: rgba(22, 26, 41, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.75), 0 0 25px rgba(124, 58, 237, 0.18) !important;
+  color: #ffffff !important;
+}
+.dark-mode .menu-popup .menu-item,
+.dark .menu-popup .menu-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.dark-mode .menu-popup .menu-item svg,
+.dark .menu-popup .menu-item svg {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.dark-mode .menu-popup .menu-item span,
+.dark .menu-popup .menu-item span {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.dark-mode .menu-popup .menu-item:hover,
+.dark .menu-popup .menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.dark-mode .menu-popup .menu-item:hover span,
+.dark-mode .menu-popup .menu-item:hover svg,
+.dark .menu-popup .menu-item:hover span,
+.dark .menu-popup .menu-item:hover svg {
+  color: #ffffff !important;
+}
+
+/* Active states in Dark Mode */
+.dark-mode .menu-popup .menu-item.active-wishlist,
+.dark .menu-popup .menu-item.active-wishlist {
+  background: rgba(168, 85, 247, 0.22) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+.dark-mode .menu-popup .menu-item.active-wishlist span,
+.dark-mode .menu-popup .menu-item.active-wishlist svg,
+.dark .menu-popup .menu-item.active-wishlist span,
+.dark .menu-popup .menu-item.active-wishlist svg {
+  color: #c084fc !important;
+}
+
+.dark-mode .menu-popup .menu-item.active-price-chart,
+.dark .menu-popup .menu-item.active-price-chart {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+.dark-mode .menu-popup .menu-item.active-price-chart span,
+.dark-mode .menu-popup .menu-item.active-price-chart svg,
+.dark .menu-popup .menu-item.active-price-chart span,
+.dark .menu-popup .menu-item.active-price-chart svg {
+  color: #34d399 !important;
+}
+
+.dark-mode .menu-popup .menu-item.active-account,
+.dark .menu-popup .menu-item.active-account {
+  background: rgba(236, 72, 153, 0.22) !important;
+  border: 1px solid rgba(236, 72, 153, 0.35) !important;
+}
+.dark-mode .menu-popup .menu-item.active-account span,
+.dark-mode .menu-popup .menu-item.active-account svg,
+.dark .menu-popup .menu-item.active-account span,
+.dark .menu-popup .menu-item.active-account svg {
+  color: #f472b6 !important;
+}
+
+.dark-mode .menu-popup .menu-item.active-main,
+.dark .menu-popup .menu-item.active-main {
+  background: rgba(14, 165, 233, 0.22) !important;
+  border: 1px solid rgba(14, 165, 233, 0.35) !important;
+}
+.dark-mode .menu-popup .menu-item.active-main span,
+.dark-mode .menu-popup .menu-item.active-main svg,
+.dark .menu-popup .menu-item.active-main span,
+.dark .menu-popup .menu-item.active-main svg {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .menu-popup .menu-divider,
+.dark .menu-popup .menu-divider {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.dark-mode .menu-popup .menu-feedback,
+.dark .menu-popup .menu-feedback {
+  color: #fbbf24 !important;
+}
+.dark-mode .menu-popup .menu-feedback span,
+.dark .menu-popup .menu-feedback span {
+  color: #fbbf24 !important;
+}
+.dark-mode .menu-popup .menu-feedback-sub,
+.dark .menu-popup .menu-feedback-sub {
+  color: rgba(252, 211, 77, 0.75) !important;
+}
+.dark-mode .menu-popup .menu-feedback:hover,
+.dark .menu-popup .menu-feedback:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.dark-mode .menu-popup .menu-feedback-locked span,
+.dark-mode .menu-popup .menu-feedback-locked p,
+.dark .menu-popup .menu-feedback-locked span,
+.dark .menu-popup .menu-feedback-locked p {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Đảm bảo các modal và container nền tối không bị biến chữ thành màu đen khi đang ở Light Mode */
+.light-mode [class*="bg-neutral-900"],
+.light-mode [class*="bg-neutral-900"] h1,
+.light-mode [class*="bg-neutral-900"] h2,
+.light-mode [class*="bg-neutral-900"] h3,
+.light-mode [class*="bg-neutral-900"] h4,
+.light-mode [class*="bg-neutral-900"] p,
+.light-mode [class*="bg-neutral-900"] span:not([class*="text-"]):not([class*="bg-"]),
+.light-mode [class*="bg-neutral-900"] div:not([class*="text-"]):not([class*="bg-"]),
+.light-mode [class*="bg-neutral-900"] label,
+.light-mode [class*="bg-neutral-950"],
+.light-mode [class*="bg-neutral-950"] * {
+  color: #f8fafc;
+}
+
+.light-mode [class*="to-purple-950"],
+.light-mode [class*="to-purple-950"] h1,
+.light-mode [class*="to-purple-950"] h2,
+.light-mode [class*="to-purple-950"] h3,
+.light-mode [class*="to-purple-950"] h4,
+.light-mode [class*="to-purple-950"] p,
+.light-mode [class*="to-purple-950"] span:not([class*="text-"]):not([class*="bg-"]),
+.light-mode [class*="to-purple-950"] label,
+.light-mode [class*="to-red-950"],
+.light-mode [class*="to-red-950"] h1,
+.light-mode [class*="to-red-950"] h2,
+.light-mode [class*="to-red-950"] h3,
+.light-mode [class*="to-red-950"] h4,
+.light-mode [class*="to-red-950"] p,
+.light-mode [class*="to-red-950"] span:not([class*="text-"]):not([class*="bg-"]),
+.light-mode [class*="to-red-950"] label {
+  color: #f8fafc;
+}
+
 .dark-mode .apple-glass {
   background: rgba(20, 24, 38, 0.82);
   backdrop-filter: blur(30px);

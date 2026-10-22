@@ -29,24 +29,20 @@ export function MenuPopup({
 
   return (
     <div
-      className={`${className} bg-neutral-900/95 backdrop-blur-sm md:backdrop-blur- border border-white/20 rounded-[24px] shadow-2xl p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification z-50`}
+      className={`${className} menu-popup backdrop-blur-md rounded-[24px] p-2 w-48 flex flex-col space-y-1 animate-slide-down-notification z-50`}
     >
       <button
         onClick={() => {
           onNavigate("wishlist")
           onClose()
         }}
-        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
+        className={`menu-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer active:scale-98 ${
           currentView === "wishlist"
-            ? "bg-white/15 text-purple-400 font-bold"
-            : "hover:bg-white/10 text-white/80"
+            ? "active-wishlist font-bold"
+            : ""
         }`}
       >
-        <Heart
-          className={`w-4 h-4 ${
-            currentView === "wishlist" ? "text-purple-400" : "text-white/60"
-          }`}
-        />
+        <Heart className="w-4 h-4 shrink-0" />
         <span className="text-xs">Lịch sử theo dõi</span>
       </button>
 
@@ -55,19 +51,13 @@ export function MenuPopup({
           onNavigate("price_chart")
           onClose()
         }}
-        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
+        className={`menu-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer active:scale-98 ${
           currentView === "price_chart"
-            ? "bg-white/15 text-emerald-400 font-bold"
-            : "hover:bg-white/10 text-white/80"
+            ? "active-price-chart font-bold"
+            : ""
         }`}
       >
-        <TrendingUp
-          className={`w-4 h-4 ${
-            currentView === "price_chart"
-              ? "text-emerald-400"
-              : "text-white/60"
-          }`}
-        />
+        <TrendingUp className="w-4 h-4 shrink-0" />
         <span className="text-xs">Biểu đồ giá</span>
       </button>
 
@@ -76,43 +66,35 @@ export function MenuPopup({
           onNavigate("account")
           onClose()
         }}
-        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
+        className={`menu-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer active:scale-98 ${
           currentView === "account"
-            ? "bg-white/15 text-pink-400 font-bold"
-            : "hover:bg-white/10 text-white/80"
+            ? "active-account font-bold"
+            : ""
         }`}
       >
-        <User
-          className={`w-4 h-4 ${
-            currentView === "account" ? "text-pink-400" : "text-white/60"
-          }`}
-        />
+        <User className="w-4 h-4 shrink-0" />
         <span className="text-xs">Tài khoản</span>
       </button>
 
-      <div className="h-px bg-white/10 my-1 mx-2" />
+      <div className="menu-divider h-px my-1 mx-2" />
 
       <button
         onClick={() => {
           onNavigate("main")
           onClose()
         }}
-        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
+        className={`menu-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer active:scale-98 ${
           currentView === "main"
-            ? "bg-white/15 text-sky-400 font-bold"
-            : "hover:bg-white/10 text-white/80"
+            ? "active-main font-bold"
+            : ""
         }`}
       >
-        <Radio
-          className={`w-4 h-4 ${
-            currentView === "main" ? "text-sky-400" : "text-white/60"
-          }`}
-        />
+        <Radio className="w-4 h-4 shrink-0" />
         <span className="text-xs">Radar Săn Deal</span>
       </button>
 
       {/* Mục Đánh giá & Góp ý nhận quà Slot 3 */}
-      <div className="h-px bg-white/10 my-1 mx-2" />
+      <div className="menu-divider h-px my-1 mx-2" />
 
       {canLeaveFeedback ? (
         <button
@@ -120,12 +102,12 @@ export function MenuPopup({
             onOpenFeedback()
             onClose()
           }}
-          className="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/10 text-amber-400 font-bold cursor-pointer text-left w-full"
+          className="menu-feedback flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left w-full active:scale-98"
         >
-          <span className="text-base">⭐</span>
+          <span className="text-base shrink-0">⭐</span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center space-x-1.5">
-              <span className="text-xs">
+              <span className="text-xs font-bold">
                 {slot3Unlocked ? "Đánh giá & Góp ý" : "Đánh giá nhận Ô #3"}
               </span>
               {!slot3Unlocked && (
@@ -134,7 +116,7 @@ export function MenuPopup({
                 </span>
               )}
             </div>
-            <p className="text-[8px] text-amber-300/70 truncate font-normal">
+            <p className="menu-feedback-sub text-[8px] truncate font-normal">
               {slot3Unlocked
                 ? "Chia sẻ cảm nghĩ về app"
                 : "Phần thưởng: Mở khóa Ô #3"}
@@ -147,13 +129,13 @@ export function MenuPopup({
             onBlockedFeedbackClick()
             onClose()
           }}
-          className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-white/5 text-white/40 cursor-pointer text-left w-full opacity-70"
+          className="menu-feedback-locked flex items-center space-x-3 px-3 py-2 rounded-xl cursor-pointer text-left w-full"
           title="Cần theo dõi ít nhất 1 sản phẩm để mở khóa chức năng đánh giá"
         >
-          <span className="text-base opacity-50">🔒</span>
+          <span className="text-base opacity-60 shrink-0">🔒</span>
           <div className="min-w-0 flex-1">
-            <span className="text-xs">Đánh giá nhận Ô #3</span>
-            <p className="text-[8px] text-white/40 truncate font-normal">
+            <span className="text-xs font-semibold">Đánh giá nhận Ô #3</span>
+            <p className="text-[8px] truncate font-normal">
               Cần theo dõi ít nhất 1 món
             </p>
           </div>
